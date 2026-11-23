@@ -14,6 +14,15 @@ const venues = [...(read('venues.json') || []), ...(read('stadiums.json') || [])
                 ...(read('fixtures-static.json') || [])];
 
 const WINDOW = [-32, 30, 46, 72];   // w,s,e,n — 30N keeps Madeira, -32 keeps the Azores
+
+// North Africa and the Levant fall inside the window but host nothing we cover, so they
+// are drawn only to be ignored - a band of unclickable grey along the bottom and right
+// edges that makes the map look like it covers more than it does. Turkey stays: it has a
+// league. Cyprus, the Caucasus and Russia stay too - all UEFA, all plausible additions.
+const OUTSIDE_SCOPE = new Set([
+  'Algeria', 'Tunisia', 'Morocco', 'Libya', 'Egypt', 'W. Sahara',
+  'Israel', 'Palestine', 'Lebanon', 'Syria', 'Jordan', 'Iraq', 'Saudi Arabia', 'Kuwait',
+]);
 const TOL = 0.004;                  // Douglas-Peucker, ~350 m
 const atlas = process.env.WORLD_ATLAS || 'node_modules/world-atlas/countries-10m.json';
 const topo = JSON.parse(fs.readFileSync(atlas, 'utf8'));
@@ -47,6 +56,7 @@ const nearVenue = b => venues.some(v => v.lon > b[0]-.4 && v.lon < b[2]+.4 && v.
 
 const features = [];
 for (const f of fc.features) {
+    if (OUTSIDE_SCOPE.has(f.properties.name)) continue;
   const g = f.geometry; if (!g) continue;
   const polys = g.type === 'Polygon' ? [g.coordinates] : g.coordinates;
   const kept = [];
