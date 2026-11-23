@@ -289,8 +289,12 @@ silently returns another country's stadiums.
 That action is manual on purpose. Venues change about once a season and the public SPARQL
 endpoint is a free shared service; there is nothing to gain from hitting it nightly.
 
-After adding a league, run the full ingest — `calendars.py`, `build.py`, `verify.py`,
-`build-site.sh` — and commit. The nightly job only refreshes the feed-based leagues.
+That action rebuilds and verifies before it commits, so refreshed venues reach the live
+map on its own.
+
+Adding a *league* is different: run the full ingest — `calendars.py`, `build.py`,
+`verify.py`, `build-site.sh` — and commit. The nightly job only refreshes the
+feed-based leagues, so a new calendar-file league will not appear until you do.
 
 ## Publishing
 
