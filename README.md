@@ -272,6 +272,26 @@ Two things make that safe to re-run:
   rather than an error, which would quietly demote known grounds to city-centre pins. If any
   country comes back more than 10% smaller than what is already held, nothing is written.
 
+## Adding a league
+
+Two things are needed: a published calendar, and a line in `SOURCES` in
+`ingest/calendars.py` mapping a filename fragment to a parser, tier, country and country
+QID. The longest matching fragment wins, so a new league whose name contains an existing
+one cannot quietly inherit the wrong country.
+
+Venues need no work: `data/wikidata-venues.json` covers **52 European countries**, so a
+club in a country we have never drawn still resolves to its ground. If a country is ever
+missing, run the **Refresh venue data from Wikidata** action (Actions tab, Run workflow)
+— `ingest/wikidata-venues.py` resolves ISO codes to Wikidata items through P297 at run
+time rather than trusting hand-copied QIDs, because a mistyped QID does not error, it
+silently returns another country's stadiums.
+
+That action is manual on purpose. Venues change about once a season and the public SPARQL
+endpoint is a free shared service; there is nothing to gain from hitting it nightly.
+
+After adding a league, run the full ingest — `calendars.py`, `build.py`, `verify.py`,
+`build-site.sh` — and commit. The nightly job only refreshes the feed-based leagues.
+
 ## Publishing
 
 The site is static: `web/` is the whole thing, and any static host will serve it as is.

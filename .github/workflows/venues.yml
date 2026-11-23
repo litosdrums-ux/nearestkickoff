@@ -1,0 +1,65 @@
+name: Refresh venue data from Wikidata
+
+# Stadium coordinates come from Wikidata (CC0). This is deliberately NOT on a schedule:
+# venues change about once a season, the public SPARQL endpoint is a free shared service,
+# and 52 countries is a lot to ask of it for no reason. Run it by hand when you need it -
+# typically when adding a league in a country the data does not cover yet.
+on:
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Write even if a country comes back smaller than what we hold (dangerous)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: venues
+  cancel-in-progress: false
+
+jobs:
+  venues:
+    runs-on: ubuntu-latest
+    # 52 countries at ~2s between queries, plus Wikidata's own response time. It should
+    # take a few minutes; the ceiling is here so a hung endpoint cannot burn the quota.
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # The script refuses to write if a country we already cover comes back materially
+      # thinner - a throttled endpoint returns fewer rows rather than an error, and a
+      # plain overwrite would silently demote real stadiums to city-centre pins.
+      - name: Fetch venues
+        run: |
+          python3 ingest/wikidata-venues.py ${{ inputs.force && '--force' || '' }}
+
+      # Nothing is published without this: every venue on land, inside its own country.
+      - name: Verify the existing build still passes
+        run: python3 ingest/verify.py
+
+      - name: Commit if anything changed
+        run: |
+          git config user.name  "nearestkickoff-bot"
+          git config user.email "contact@nearestkickoff.com"
+          git add data/wikidata-venues.json
+          if git diff --staged --quiet; then
+            echo "Wikidata returned nothing new."
+          else
+            git commit -m "Refresh venue data from Wikidata: $(date -u +%Y-%m-%d)"
+            git push
+          fi
+
+      # The new coordinates only reach the map through a full ingest, which needs the
+      # calendar files and is a bigger job than this. Say so rather than leave someone
+      # wondering why the map looks identical.
+      - name: What happens next
+        run: |
+          echo "Venue data refreshed. The live map is unchanged until a full ingest runs:"
+          echo "  python3 ingest/calendars.py calendars/*"
+          echo "  python3 ingest/build.py && python3 ingest/verify.py && ./build-site.sh"
