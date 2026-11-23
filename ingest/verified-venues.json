@@ -1,0 +1,77 @@
+{
+  "_README": [
+    "Venues verified by hand against a named public source, used ahead of every other",
+    "venue source. This file exists for two reasons.",
+    "",
+    "1. It replaces data/stadiums-src.csv, whose licence we were never able to establish.",
+    "   Nothing in the build reads that csv any more.",
+    "2. Wikidata lists historic home grounds alongside current ones with no way to tell",
+    "   them apart in our extract, so the resolver correctly refuses a club with more",
+    "   than one. These are those clubs, resolved by checking which ground is current.",
+    "",
+    "'venue_country' is only set where the ground stands in a different country from the",
+    "league the club plays in. It is what the land check tests against; 'country' stays",
+    "the league's country so the club still appears under the right national filter.",
+    "",
+    "Adding an entry means checking a source and naming it in 'checked'. Do not copy a",
+    "coordinate out of a search result without opening the page it came from."
+  ],
+  "venues": [
+    {
+      "clubs": ["Crystal Palace FC", "Crystal Palace F.C.", "Crystal Palace"],
+      "stadium": "Selhurst Park", "city": "London", "country": "England",
+      "lat": 51.39833, "lon": -0.08556,
+      "checked": "en.wikipedia.org/wiki/Crystal_Palace_F.C. - home ground since 1924. Wikidata also lists Crystal Palace Park, which is the pre-1915 site."
+    },
+    {
+      "clubs": ["AS Monaco FC", "AS Monaco", "Monaco"],
+      "stadium": "Stade Louis II", "city": "Fontvieille", "country": "France",
+      "venue_country": "Monaco",
+      "lat": 43.7275, "lon": 7.41556,
+      "checked": "en.wikipedia.org/wiki/Stade_Louis_II gives the address but no coordinate; 43 deg 43'39\"N 7 deg 24'56\"E agreed by three independent sources. Monaco is not in the Wikidata country list, so the club had no row at all."
+    },
+    {
+      "clubs": ["Paris FC", "Paris F.C."],
+      "stadium": "Stade Jean-Bouin", "city": "Paris", "country": "France",
+      "lat": 48.84306, "lon": 2.25278,
+      "checked": "en.wikipedia.org/wiki/Paris_FC - moved to Jean-Bouin in 2025. BOTH Wikidata rows (Stade Charlety, Stade Robert Bobin) are out of date; either would have been a confident wrong pin."
+    },
+    {
+      "clubs": ["FC Bayern München", "FC Bayern Munich", "Bayern München", "Bayern Munich"],
+      "stadium": "Allianz Arena", "city": "Munich", "country": "Germany",
+      "lat": 48.21878, "lon": 11.62475,
+      "checked": "en.wikipedia.org/wiki/FC_Bayern_Munich - moved 2005. Single unambiguous Wikidata row; it was the English/German name difference that lost the match."
+    },
+    {
+      "clubs": ["SC Freiburg", "Sport-Club Freiburg"],
+      "stadium": "Europa-Park-Stadion", "city": "Freiburg", "country": "Germany",
+      "lat": 48.02154, "lon": 7.83001,
+      "checked": "en.wikipedia.org/wiki/SC_Freiburg - moved 2021. Wikidata also lists Dreisamstadion (1954-2021) and Moeslestadion."
+    },
+    {
+      "clubs": ["TSG 1899 Hoffenheim", "TSG Hoffenheim", "1899 Hoffenheim"],
+      "stadium": "PreZero Arena", "city": "Sinsheim", "country": "Germany",
+      "lat": 49.239, "lon": 8.88828,
+      "checked": "en.wikipedia.org/wiki/TSG_1899_Hoffenheim - moved 2009. Wikidata also lists Dietmar-Hopp-Stadion, which the women's team still uses. Ground has carried several sponsor names (Rhein-Neckar-Arena, SNP Arena)."
+    },
+    {
+      "clubs": ["Sporting Clube de Braga", "SC Braga", "S.C. Braga", "Braga"],
+      "stadium": "Estádio Municipal de Braga", "city": "Braga", "country": "Portugal",
+      "lat": 41.5624, "lon": -8.4308,
+      "checked": "en.wikipedia.org/wiki/S.C._Braga - home since 2003. Single unambiguous Wikidata row; lost on the name only."
+    },
+    {
+      "clubs": ["RC Deportivo La Coruña", "Deportivo de A Coruña", "Deportivo La Coruña", "RC Deportivo"],
+      "stadium": "Estadio Abanca-Riazor", "city": "A Coruña", "country": "Spain",
+      "lat": 43.36867, "lon": -8.41737,
+      "checked": "en.wikipedia.org/wiki/Deportivo_de_La_Coruña - Abanca-Riazor. Single unambiguous Wikidata row; lost on the name only."
+    },
+    {
+      "clubs": ["FC Vaduz", "Vaduz"],
+      "stadium": "Rheinpark Stadion", "city": "Vaduz", "country": "Switzerland",
+      "venue_country": "Liechtenstein",
+      "lat": 47.14028, "lon": 9.51028,
+      "checked": "en.wikipedia.org/wiki/Rheinpark_Stadion. Liechtenstein is not in the Wikidata country list, so the club fell back to a city-centre pin."
+    }
+  ]
+}

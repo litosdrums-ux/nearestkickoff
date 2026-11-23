@@ -1,0 +1,66 @@
+name: Nightly fixture refresh
+
+# Fixtures move constantly - TV reschedules, postponements, cup replays - so the site
+# rebuilds itself rather than waiting for someone to remember. Three ways to trigger:
+on:
+  schedule:
+    - cron: '17 4 * * *'        # 04:17 UTC daily. An odd minute on purpose: everything
+                                # scheduled on the hour queues behind everything else.
+  workflow_dispatch:            # a "Run workflow" button, for when you want it now
+  push:
+    branches: [main]            # any change you make redeploys immediately
+
+permissions:
+  contents: write               # the job commits the refreshed data back
+
+concurrency:                    # never let two rebuilds race each other
+  group: rebuild
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # refresh.py re-fetches only the schedules and joins them to the venue table the
+      # full ingest already resolved. Venues change about once a season; fixtures change
+      # nightly. It merges fixtures-static.json too - without that, every night's rebuild
+      # would silently delete the calendar-file leagues.
+      - name: Refresh fixtures from openfootball
+        run: |
+          python3 web/refresh.py \
+            web/venues.json \
+            web/matches.json \
+            web/matches.new.json \
+            web/fixtures-static.json
+
+      # refresh.py exits non-zero without writing if a safety gate trips, so a bad
+      # upstream day leaves the site on its last good data instead of publishing a hole.
+      - name: Promote the new fixtures
+        run: mv web/matches.new.json web/matches.json
+
+      # The gate that matters: every venue on land, in its own country. If this fails
+      # nothing is committed and nothing deploys - the live site stays as it was.
+      - name: Verify
+        run: python3 ingest/verify.py
+
+      - name: Assemble the site
+        run: ./build-site.sh
+
+      - name: Commit if anything changed
+        run: |
+          git config user.name  "nearestkickoff-bot"
+          git config user.email "contact@nearestkickoff.com"
+          git add web/matches.json dist/
+          if git diff --staged --quiet; then
+            echo "No fixture changes today."
+          else
+            git commit -m "Nightly fixture refresh: $(date -u +%Y-%m-%d)"
+            git push
+            echo "Pushed. Cloudflare Pages will redeploy automatically."
+          fi

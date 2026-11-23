@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nearest Kickoff – football near you, across Europe</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%233ddc84' stroke-width='3'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%233ddc84'/%3E%3C/svg%3E">
+<!-- Self-hosted rather than loaded from Google Fonts. A webfont request to a third party
+     sends every visitor's IP address to that third party, which is a disclosure we would
+     then have to ask consent for under GDPR - and it is a render-blocking round trip to
+     someone else's server. Space Grotesk is SIL OFL 1.1; the licence ships in fonts/. -->
+<style>
+@font-face{font-family:"Space Grotesk";src:url("fonts/SpaceGrotesk.woff2") format("woff2");
+  font-weight:300 700;font-style:normal;font-display:swap}
+</style>
+<link rel="stylesheet" href="maplibre-gl.css">
+<style>
+  :root{
+    --bg:#0a141d; --panel:#0f1d29; --panel2:#142636; --line:#1f3447; --text:#e8f1f7; --muted:#8aa3b6;
+    --t1:#3ddc84; --t2:#ffd24a; --t3:#ff8a4c; --t4:#c77dff; --accent:#3ddc84; --you:#4aa8ff;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:"Space Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden}
+  /* Collapsing animates the grid column itself, so the map genuinely gains the space
+     instead of having the panel float over it. */
+  .app{display:grid;grid-template-columns:400px 1fr;height:100%;
+       transition:grid-template-columns .28s ease,grid-template-rows .28s ease}
+  .app.collapsed{grid-template-columns:0 1fr}
+  aside{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0;z-index:2;overflow:hidden}
+  .head{padding:16px 18px 10px}
+  .brand{display:flex;align-items:center;gap:10px}
+  .logo{width:26px;height:26px;border-radius:50%;border:2px solid var(--accent);position:relative;flex:none}
+  .logo::after{content:"";position:absolute;inset:5px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
+  @keyframes pulse{0%{opacity:1;transform:scale(.7)}70%{opacity:.2;transform:scale(1.15)}100%{opacity:1;transform:scale(.7)}}
+  .brand h1{font-size:20px;margin:0;letter-spacing:.2px}
+  .demo{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.8px;color:#1a1200;background:var(--t2);padding:3px 7px;border-radius:4px}
+  .tag{color:var(--muted);font-size:13px;margin:6px 0 0;line-height:1.45}
+  .ctl{padding:0 18px 14px;border-bottom:1px solid var(--line)}
+  .lbl{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:13px 0 6px;display:flex;justify-content:space-between;align-items:center}
+  .lbl b{color:var(--text);font-weight:500;letter-spacing:0;text-transform:none;font-size:12px}
+  .row{display:flex;gap:6px;flex-wrap:wrap}
+  .legal{display:flex;gap:12px;flex-wrap:wrap;margin-top:7px}
+  .legal a{color:var(--muted);text-decoration:none;border-bottom:1px solid transparent}
+  .legal a:hover{color:var(--text);border-bottom-color:var(--line)}
+  .chip{background:var(--panel2);border:1px solid var(--line);color:var(--text);font:inherit;font-size:12.5px;padding:6px 10px;border-radius:999px;cursor:pointer;transition:.15s}
+  .chip:hover{border-color:#34536b}
+  .chip.on{background:var(--accent);border-color:var(--accent);color:#04210f;font-weight:700}
+  .chip.tier.on{color:#0a141d}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+  .loc{display:flex;gap:6px}
+  .loc select{flex:1;min-width:0}
+  .search{position:relative;flex:1;min-width:0}
+  .search input{width:100%;box-sizing:border-box;background:var(--panel2);border:1px solid var(--line);
+       color:var(--text);font:inherit;font-size:13px;padding:8px 10px;border-radius:8px}
+  .search input:focus{outline:none;border-color:var(--accent)}
+  .search input::placeholder{color:var(--muted)}
+  .res{position:absolute;z-index:20;left:0;right:0;top:calc(100% + 4px);max-height:264px;overflow:auto;
+       background:var(--panel);border:1px solid var(--line);border-radius:10px;
+       box-shadow:0 12px 28px rgba(0,0,0,.5)}
+  .res[hidden]{display:none}
+  .res .opt{display:flex;justify-content:space-between;gap:10px;align-items:baseline;
+       padding:8px 11px;cursor:pointer;font-size:13px}
+  .res .opt span{color:var(--muted);font-size:11.5px;white-space:nowrap}
+  .res .opt.on,.res .opt:hover{background:var(--panel2)}
+  .res .none{padding:9px 11px;font-size:12.5px;color:var(--muted)}
+  select{background:var(--panel2);border:1px solid var(--line);color:var(--text);font:inherit;font-size:13px;padding:8px 10px;border-radius:8px}
+  input[type=range]{width:100%;accent-color:var(--accent)}
+  .hint{font-size:11.5px;color:var(--muted);margin-top:7px;line-height:1.45}
+  /* selected-country banner in sidebar */
+  .scope{display:none;align-items:center;gap:8px;margin:13px 0 0;background:var(--panel2);border:1px solid #2b4a63;border-radius:10px;padding:8px 10px}
+  .scope.on{display:flex}
+  .scope .nm{font-size:13.5px;font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .scope .x{background:none;border:0;color:var(--muted);font:inherit;font-size:17px;cursor:pointer;padding:0 2px;line-height:1}
+  .scope .x:hover{color:var(--text)}
+  .listhead{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted)}
+  .sort{display:flex;gap:4px}
+  .sort .chip{padding:3px 9px;font-size:11.5px}
+  .list{overflow:auto;flex:1;min-height:0}
+  .card{padding:12px 18px;border-bottom:1px solid var(--line);cursor:pointer;display:grid;grid-template-columns:62px 1fr auto;gap:12px;align-items:center}
+  .card:hover,.card.active{background:var(--panel2)}
+  .when{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;line-height:1.35}
+  .when b{display:block;color:var(--text);font-size:15px;letter-spacing:0;text-transform:none}
+  .when.today b{color:var(--accent)}
+  .teams{font-size:14px;font-weight:500;line-height:1.3}
+  .teams span{color:var(--muted);font-weight:400}
+  .meta{font-size:12px;color:var(--muted);margin-top:3px;display:flex;align-items:center}
+  .dist{font-size:12px;color:var(--muted);text-align:right;white-space:nowrap}
+  .empty{padding:28px 20px;color:var(--muted);font-size:13.5px;text-align:center;line-height:1.6}
+  .empty button{margin-top:10px}
+  .foot{padding:8px 18px;font-size:11px;color:var(--muted);border-top:1px solid var(--line)}
+  /* map */
+  .wrap{position:relative;min-height:0}
+  /* --pz is the drawn size of a pin, --hit the size of its click target. They are
+     separate on purpose: a 9px dot is honest about how precise the location is,
+     but nobody can hit it. The target is a transparent circle, so it can be far
+     larger than the dot without making the map look heavier. */
+  #map{position:absolute;inset:0;background:#0a141d;--pz:9;--hit:32px}
+  .banner{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:3;background:rgba(10,20,29,.9);border:1px solid var(--line);border-radius:999px;padding:7px 15px;font-size:12.5px;color:var(--muted);backdrop-filter:blur(6px);pointer-events:none;white-space:nowrap;transition:.2s}
+  .banner b{color:var(--t2)}
+  .back{position:absolute;top:12px;left:12px;z-index:4;display:none;align-items:center;gap:7px;background:rgba(15,29,41,.95);border:1px solid #2b4a63;color:var(--text);font:inherit;font-size:13px;padding:8px 13px;border-radius:999px;cursor:pointer;backdrop-filter:blur(6px)}
+  .back:hover{border-color:var(--accent)}
+  #map[data-mode="detail"] ~ .back{display:flex}
+  /* a tab on the seam between panel and map, so it reads as the edge of the panel
+     rather than as one more floating map control */
+  .ptoggle{position:absolute;left:0;top:50%;transform:translateY(-50%);z-index:5;
+       width:23px;height:64px;display:flex;align-items:center;justify-content:center;
+       background:rgba(15,29,41,.95);border:1px solid #2b4a63;border-left:0;
+       border-radius:0 10px 10px 0;color:var(--muted);font:inherit;font-size:16px;
+       cursor:pointer;backdrop-filter:blur(6px);padding:0;transition:color .15s,border-color .15s}
+  .ptoggle:hover{color:var(--text);border-color:var(--accent)}
+  .ptoggle i{font-style:normal;line-height:1;transition:transform .28s ease}
+  .app.collapsed .ptoggle i{transform:rotate(180deg)}
+  .legend{position:absolute;right:12px;bottom:46px;z-index:3;background:rgba(10,20,29,.9);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:12px;backdrop-filter:blur(6px);pointer-events:none}
+  .legend div{margin:3px 0;color:var(--muted);display:flex;align-items:center}
+  .tip{position:absolute;z-index:5;pointer-events:none;background:rgba(15,29,41,.96);border:1px solid #2b4a63;border-radius:8px;padding:6px 10px;font-size:12.5px;display:none;white-space:nowrap;transform:translate(-50%,-150%)}
+  .tip b{color:var(--accent)}
+  /* markers — the wrapper is what MapLibre positions; never put a transform or
+     a transform transition on it, or the marker lags behind the map while panning */
+  .mk{line-height:0}
+  .bub{display:flex;align-items:center;justify-content:center;border-radius:999px;background:rgba(61,220,132,.16);border:2px solid var(--accent);color:var(--accent);
+       font-weight:700;cursor:pointer;backdrop-filter:blur(2px);transition:transform .15s,background .15s}
+  .bub:hover{transform:scale(1.12);background:rgba(61,220,132,.3)}
+  .bub i{font-style:normal;font-size:13px}
+  .pin{width:calc(var(--pz)*1px);height:calc(var(--pz)*1px);border-radius:50%;border:2px solid #0a141d;
+       box-shadow:0 0 0 1.5px rgba(255,255,255,.2),0 2px 7px rgba(0,0,0,.65);cursor:pointer;position:relative;transition:transform .12s}
+  .pin::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+       width:max(100%,var(--hit));height:max(100%,var(--hit));border-radius:50%}
+  .pin:hover,.pin.active{transform:scale(1.4);z-index:6}
+  .pin .n{position:absolute;top:-7px;right:-8px;background:#e8f1f7;color:#0a141d;font-size:10px;font-weight:700;border-radius:999px;min-width:15px;height:15px;line-height:15px;text-align:center;padding:0 3px;display:none}
+  #map[data-labels="1"] .pin .n{display:block}
+  .pin.approx{background:transparent!important;border:2.5px solid currentColor;box-shadow:0 0 0 1.5px rgba(0,0,0,.5)}
+  .pin.today::before{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid currentColor;opacity:.7;animation:ring 1.9s infinite}
+  @keyframes ring{0%{transform:scale(.6);opacity:.9}100%{transform:scale(1.6);opacity:0}}
+  .clab{display:inline-block;color:#cfe2ef;font-size:11.5px;font-weight:500;letter-spacing:.3px;pointer-events:none;white-space:nowrap;line-height:1.2;
+        text-shadow:0 0 4px #0a141d,0 0 4px #0a141d,0 1px 3px #000;margin-top:11px;opacity:0;transition:opacity .2s}
+  #map[data-labels="1"] .clab{opacity:1}
+  .you{width:14px;height:14px;border-radius:50%;background:var(--you);border:3px solid #fff;box-shadow:0 0 0 6px rgba(74,168,255,.22)}
+  /* mode visibility — MapLibre writes an inline opacity on the marker element itself,
+     which beats any stylesheet rule, so fade the child instead */
+  .mk>*{transition:opacity .25s}
+  /* A city label is decoration - it has no click handler - but its marker element is
+     still a box anchored at the venue, sitting directly over the pin and swallowing
+     the click. It is invisible below LABEL_ZOOM, so the pin simply looked dead. The
+     label text already opts out; the marker MapLibre wraps it in has to as well. */
+  .mk-lab{pointer-events:none}
+  #map[data-mode="euro"] .mk-pin{pointer-events:none}
+  #map[data-mode="euro"] .mk-pin>.pin{opacity:0}
+  #map[data-mode="detail"] .mk-bub{pointer-events:none}
+  #map[data-mode="detail"] .mk-bub>.bub{opacity:0}
+  /* popup */
+  .maplibregl-popup-content{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:250px;font-family:inherit;box-shadow:0 10px 30px rgba(0,0,0,.55)}
+  .maplibregl-popup-anchor-bottom .maplibregl-popup-tip{border-top-color:var(--panel)}
+  .maplibregl-popup-anchor-top .maplibregl-popup-tip{border-bottom-color:var(--panel)}
+  .maplibregl-popup-close-button{color:var(--muted);font-size:18px;padding:2px 8px}
+  .pop h3{margin:0 0 2px;font-size:15px}
+  .pop .sub{color:var(--muted);font-size:12px;margin-bottom:8px}
+  .pop .m{padding:8px 0;border-top:1px solid var(--line);font-size:13px}
+  .pop .m b{display:block;font-size:14px;margin-bottom:2px}
+  .pop .m span{color:var(--muted);font-size:12px}
+  .pop .findlink{display:inline-block;margin-top:5px;background:none;color:#7fd4ff;font-size:11.5px;font-weight:500;padding:0;text-decoration:none}
+  .pop .findlink:hover{text-decoration:underline}
+  .pop>div>a:not(.findlink),.pop>a{display:inline-block;margin-top:10px;color:#04210f;background:var(--accent);padding:6px 12px;border-radius:8px;font-size:12.5px;font-weight:700;text-decoration:none}
+  @media (max-width:820px){
+    .app{grid-template-columns:1fr;grid-template-rows:46vh 1fr}
+    /* the panel is below the map here, so it is the second row that collapses */
+    .app.collapsed{grid-template-columns:1fr;grid-template-rows:1fr 0}
+    .ptoggle{left:50%;top:auto;bottom:0;transform:translateX(-50%);width:64px;height:23px;
+         border:1px solid #2b4a63;border-bottom:0;border-radius:10px 10px 0 0}
+    .ptoggle i{transform:rotate(-90deg)}
+    /* collapsed, the seam it hugs is the window edge, where the attribution sits */
+    .app.collapsed .ptoggle{bottom:30px;border-bottom:1px solid #2b4a63;border-radius:10px}
+    .app.collapsed .ptoggle i{transform:rotate(90deg)}
+    .wrap{order:-1}
+    aside{border-right:0;border-top:1px solid var(--line)}
+    .banner,.legend{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside id="sidepanel">
+    <div class="head">
+      <div class="brand"><div class="logo"></div><h1>Nearest Kickoff</h1><span class="demo" id="seasonbadge">2026/27</span></div>
+      <p class="tag" id="tagline">Real 2026/27 fixtures. Pick a country, then zoom for city names.</p>
+    </div>
+    <div class="ctl">
+      <div class="lbl">Where are you</div>
+      <div class="loc">
+        <div class="search">
+          <input id="city" type="text" autocomplete="off" spellcheck="false"
+                 placeholder="Search for your city" aria-label="Where are you"
+                 role="combobox" aria-expanded="false" aria-controls="cityres"
+                 aria-autocomplete="list">
+          <div class="res" id="cityres" role="listbox" hidden></div>
+        </div>
+        <button class="chip" id="pick">Pin on map</button>
+      </div>
+      <div class="hint" id="lochint">Click a country to zoom in. Zoom further for city names.</div>
+
+      <div class="scope" id="scope">
+        <span class="dot" style="background:var(--accent)"></span>
+        <span class="nm" id="scopename"></span>
+        <button class="x" id="scopex" title="Back to all of Europe">×</button>
+      </div>
+
+      <div class="lbl">When</div>
+      <div class="row" id="dates"></div>
+
+      <div class="lbl">Level</div>
+      <div class="row" id="tiers"></div>
+
+      <div id="radwrap">
+        <div class="lbl">Distance from you <b id="radlbl"></b></div>
+        <input type="range" id="rad" min="10" max="1000" step="10" value="300">
+        <div class="hint" id="radnote"></div>
+      </div>
+    </div>
+    <div class="listhead"><span id="count">Loading…</span>
+      <div class="sort"><button class="chip on" data-s="time">Soonest</button><button class="chip" data-s="dist">Nearest</button></div>
+    </div>
+    <div class="list" id="list"></div>
+    <div class="foot"><span id="footnote">Loading…</span>
+      <nav class="legal">
+        <a href="credits.html" target="_blank" rel="noopener">Credits &amp; licences</a>
+        <a href="privacy.html" target="_blank" rel="noopener">Privacy</a>
+        <a href="terms.html" target="_blank" rel="noopener">Terms</a>
+      </nav>
+    </div>
+  </aside>
+  <div class="wrap">
+    <div id="map" data-mode="euro" data-labels="0"></div>
+    <button class="back" id="back">← All of Europe</button>
+    <div class="banner" id="banner">Click a country to see its matches</div>
+    <div class="legend" id="legend"></div>
+    <div class="tip" id="tip"></div>
+    <button class="ptoggle" id="ptoggle" aria-controls="sidepanel" aria-expanded="true"
+            title="Hide the filters"><i>&lsaquo;</i></button>
+  </div>
+</div>
+
+<script src="maplibre-gl.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const DETAIL_ZOOM=4.9, LABEL_ZOOM=6.3;
+// Province lines fade in as the country fills the screen, and the country you picked
+// is drawn at full strength while its neighbours sit back - otherwise every border in
+// the region competes with the one you are actually looking at.
+// MapLibre only accepts a zoom expression as the OUTERMOST interpolate, so the
+// per-country dimming goes inside each stop rather than multiplying the whole ramp.
+const provOpacity=sel=>{
+  const at=v=>sel?['case',['==',['get','country'],sel],v,v*.4]:v;
+  return ['interpolate',['linear'],['zoom'],DETAIL_ZOOM,0,5.4,at(.52),10,at(.64)];
+};
+const EURO_VIEW={center:[11,50],zoom:3.75};
+const TIERS={1:['Top flight','#3ddc84'],2:['Second tier','#ffd24a'],3:['Third tier','#ff8a4c'],4:['Lower leagues','#c77dff']};
+// stadium country -> sovereign state used by the map geometry
+const SOVEREIGN={England:'United Kingdom',Scotland:'United Kingdom',Wales:'United Kingdom','Türkiye':'Turkey'};
+const sov=c=>SOVEREIGN[c]||c;
+const HOME = ['Florence', 43.7696, 11.2558];   // where the map opens
+
+let S=[],MATCHES=[],countryBounds={},GEO=null;
+const st={center:[11.2558,43.7696],range:'7',tiers:new Set([1,2,3,4]),radius:300,sort:'time',active:null,country:null,picking:false};
+const day0=new Date();day0.setHours(0,0,0,0);
+
+/* ---------- real fixtures, loaded from ingest/build.py output ---------- */
+// Schedules are published months ahead, so this is a static file rebuilt by a
+// batch job - no API key and no request-time call to anyone.
+function loadMatches(raw){
+  return raw.map(m=>{
+    const [Y,M,D]=m.date.split('-').map(Number);
+    // A fixture with no announced time must not sort as if it kicked off at midnight,
+    // or every TBD match jumps ahead of the ones actually starting that morning.
+    // End of day puts it last within its own day, which is what "sometime today" means.
+    const [hh,mm]=(m.time||'23:59').split(':').map(Number);
+    return {...m, ko:new Date(Y,M-1,D,hh,mm,0,0), tbd:!m.time,
+            sovereign:sov(m.country), pk:m.lat.toFixed(4)+','+m.lon.toFixed(4)};
+  });
+}
+
+/* ---------- filtering ---------- */
+function km(a,b){const R=6371,t=Math.PI/180,dLat=(b[1]-a[1])*t,dLon=(b[0]-a[0])*t;
+  const h=Math.sin(dLat/2)**2+Math.cos(a[1]*t)*Math.cos(b[1]*t)*Math.sin(dLon/2)**2;return 2*R*Math.asin(Math.sqrt(h))}
+function inRange(ko){const d=Math.floor((new Date(ko).setHours(0,0,0,0)-day0)/864e5);
+  if(st.range==='we'){const dow=day0.getDay(),sat=dow===0?-1:6-dow;return d===sat||d===sat+1||(dow===0&&d===0)}
+  if(st.range==='0')return d===0;if(st.range==='1')return d===1;return d>=0&&d<Number(st.range)}
+// allTL: passes the time + level filters, with distance attached. The country bubbles
+// use this, so zooming out always shows every country that has football on.
+function allTL(){
+  // A match that kicked off hours ago is not something on near you. Keep one in
+  // progress (roughly two hours), and keep a TBD fixture all day, since its ko sits
+  // at end of day and we genuinely do not know when it starts.
+  const cutoff=Date.now()-2*3600e3;
+  return MATCHES.filter(m=>m.ko.getTime()>cutoff&&inRange(m.ko)&&st.tiers.has(Math.min(m.tier,4)))
+  .map(m=>({...m,dist:km(st.center,[m.lon,m.lat])}))}
+// The radius means "near me", so it applies only while browsing Europe. Once a country
+// is picked you are browsing that country and see all of it.
+const nearMe=()=>allTL().filter(m=>st.radius>=1000||m.dist<=st.radius);
+const visible=()=>st.country?allTL().filter(m=>m.sovereign===st.country):nearMe();
+const fmtDay=d=>{const n=Math.floor((new Date(d).setHours(0,0,0,0)-day0)/864e5);
+  return n===0?'Today':n===1?'Tomorrow':d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})};
+// German second-tier fixtures publish a weekend, not a day, until broadcasters pick
+// slots. Showing one day of that weekend would be a guess, so show the window.
+const fmtWhen=m=>m.note||fmtDay(m.ko);
+const fmtT=m=>m.tbd?'TBD':m.ko.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+const tcol=t=>TIERS[Math.min(t,4)][1];
+
+/* ---------- map ---------- */
+const empty={type:'FeatureCollection',features:[]};
+const map=new maplibregl.Map({container:'map',center:EURO_VIEW.center,zoom:EURO_VIEW.zoom,minZoom:3,maxZoom:14,
+  attributionControl:false,doubleClickZoom:false,dragRotate:false,
+  style:{version:8,sources:{eu:{type:'geojson',data:empty},prov:{type:'geojson',data:empty},
+    radius:{type:'geojson',data:empty}},layers:[
+    {id:'bg',type:'background',paint:{'background-color':'#060d15'}},
+    {id:'land',type:'fill',source:'eu',paint:{'fill-color':['case',
+        ['boolean',['feature-state','sel'],false],'#22435e',
+        ['boolean',['feature-state','hover'],false],'#1e3b53',
+        ['boolean',['feature-state','has'],false],'#1a3146','#142534']}},
+    // province and state lines, under the national border and dimmer than it, so the
+    // country still reads as the outer shape. Nothing below DETAIL_ZOOM: at the Europe
+    // view they would be a mesh of noise over countries you have not picked yet.
+    {id:'prov-line',type:'line',source:'prov',minzoom:DETAIL_ZOOM,
+      // dasharray is measured in multiples of line-width, so a thin line makes the
+      // dashes sub-pixel and the whole thing vanishes. Width first, then the pattern.
+      paint:{'line-color':'#9cc4e0','line-dasharray':[2,2.4],
+        'line-width':['interpolate',['linear'],['zoom'],5,1.1,7,1.35,10,1.6],
+        'line-opacity':provOpacity(null)}},
+    {id:'borders',type:'line',source:'eu',paint:{'line-color':'#2f5775','line-width':.9}},
+    // the selection outline guides the eye when zoomed out; up close it just shouts
+    {id:'sel-line',type:'line',source:'eu',filter:['==',['id'],-1],
+      paint:{'line-color':'#3ddc84',
+        'line-width':['interpolate',['linear'],['zoom'],4,2,6,1.4,9,0.7],
+        'line-opacity':['interpolate',['linear'],['zoom'],4,.9,6,.6,9,.25]}},
+    {id:'rad-fill',type:'fill',source:'radius',paint:{'fill-color':'#4aa8ff','fill-opacity':.06}},
+    {id:'rad-line',type:'line',source:'radius',paint:{'line-color':'#4aa8ff','line-width':1.4,'line-dasharray':[2,2],'line-opacity':.65}}
+  ]}});
+map.addControl(new maplibregl.NavigationControl({showCompass:false}),'top-right');
+// Attribution is an obligation, not decoration: the town gazetteer is CC BY 4.0, which
+// requires crediting GeoNames and naming the licence wherever the data is published.
+// Natural Earth, openfootball and Wikidata are public domain / CC0 and need no credit;
+// they are named anyway so the map says where every number on it came from.
+map.addControl(new maplibregl.AttributionControl({compact:true,customAttribution:
+  'Fixtures: <a href="https://github.com/openfootball" target="_blank" rel="noopener">openfootball</a> '+
+  '&amp; published league calendars · '+
+  'Venues: <a href="https://www.wikidata.org" target="_blank" rel="noopener">Wikidata</a> (CC0) · '+
+  'Towns: <a href="https://www.geonames.org" target="_blank" rel="noopener">GeoNames</a> '+
+  '(<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>) · '+
+  'Shapes: <a href="https://www.naturalearthdata.com" target="_blank" rel="noopener">Natural Earth</a> · '+
+  '<a href="credits.html" target="_blank" rel="noopener">full credits</a>'}));
+
+let mkBub=[],mkPin=[],mkLab=[],youMk=null,popup=null,ready=false,hoverId=null,animating=false;
+
+function circlePoly(c,r,n=96){const pts=[],t=Math.PI/180,R=6371;
+  for(let i=0;i<=n;i++){const b=i/n*2*Math.PI,lat=c[1]*t,lon=c[0]*t,d=r/R;
+    const la=Math.asin(Math.sin(lat)*Math.cos(d)+Math.cos(lat)*Math.sin(d)*Math.cos(b));
+    const lo=lon+Math.atan2(Math.sin(b)*Math.sin(d)*Math.cos(lat),Math.cos(d)-Math.sin(lat)*Math.sin(la));
+    pts.push([lo/t,la/t])}
+  return{type:'FeatureCollection',features:[{type:'Feature',geometry:{type:'Polygon',coordinates:[pts]}}]}}
+
+function applyZoom(){
+  const z=map.getZoom();
+  const el=$('map');
+  // picking a country always means detail view, however far out its bounds fit
+  el.dataset.mode=(st.country||z>=DETAIL_ZOOM)?'detail':'euro';
+  el.dataset.labels=z>=LABEL_ZOOM?'1':'0';
+  // small dots when zoomed out, so a pin never covers a region it is not in
+  el.style.setProperty('--pz',Math.max(12,Math.min(26,12+(z-5)*2.6)).toFixed(1));
+  $('banner').textContent=el.dataset.mode==='euro'?'Click a country to see its matches'
+    :z<LABEL_ZOOM?'Zoom in for city names':'';
+  $('banner').style.opacity=z>=LABEL_ZOOM?0:1;
+}
+
+function declutter(){
+  if($('map').dataset.labels!=='1')return;
+  const placed=[];
+  for(const{mk,n}of mkLab){
+    const p=map.project(mk.getLngLat()),el=mk.getElement();
+    const w=Math.max(42,n.length*6.2);
+    const clash=placed.some(q=>Math.abs(q.x-p.x)<(q.w+w)/2+10&&Math.abs(q.y-p.y)<24);
+    el.style.visibility=clash?'hidden':'visible';
+    if(!clash)placed.push({x:p.x,y:p.y,w});
+  }
+}
+
+function setCountryState(){
+  if(!ready||!GEO)return;
+  const has={};allTL().forEach(m=>has[m.sovereign]=1);
+  for(const f of GEO.features){
+    map.setFeatureState({source:'eu',id:f.id},{has:!!has[f.properties.name],sel:f.properties.name===st.country});
+  }
+  map.setFilter('sel-line',st.country?['==',['get','name'],st.country]:['==',['id'],-1]);
+}
+
+function render(fit){
+  const all=allTL(),ms=visible();
+  $('radlbl').textContent=st.country?'—':st.radius>=1000?'Anywhere':`${st.radius} km`;
+  $('rad').disabled=!!st.country;
+  $('radwrap').style.opacity=st.country?.45:1;
+  $('radnote').textContent=st.country?'Showing all of '+st.country+'. Clear the country to search by distance.':'';
+  $('scope').classList.toggle('on',!!st.country);
+  if(st.country)$('scopename').textContent=st.country;
+  // the ring means "within X of me" — meaningless once you are browsing a country
+  if(ready)map.getSource('radius').setData(
+    (st.country||st.radius>=1000)?empty:circlePoly(st.center,st.radius));
+
+  /* list */
+  const sorted=[...ms].sort((a,b)=>st.sort==='time'?(a.ko-b.ko||a.dist-b.dist):(a.dist-b.dist||a.ko-b.ko));
+  $('count').textContent=`${ms.length} match${ms.length===1?'':'es'} ${st.country?'in '+st.country:'near you'}`;
+  $('list').innerHTML=sorted.length?sorted.map(m=>{
+    const today=!m.note&&Math.floor((new Date(m.ko).setHours(0,0,0,0)-day0)/864e5)===0;
+    return `<div class="card ${st.active===m.pk?'active':''}" data-pk="${m.pk}">
+      <div class="when ${today?'today':''}"><b>${fmtT(m)}</b>${fmtWhen(m)}</div>
+      <div><div class="teams">${m.home} <span>vs</span> ${m.away}</div>
+      <div class="meta"><span class="dot" style="background:${tcol(m.tier)}"></span>${m.league} · ${m.city}</div></div>
+      <div class="dist">${Math.round(m.dist)} km</div></div>`}).join('')
+   :`<div class="empty">${st.country
+      ?`No matches in ${st.country} in this date range.<br>
+        <button class="chip" id="clearc">Back to all of Europe</button>`
+      :`Nothing within ${st.radius} km of you.<br>Widen the distance, or zoom out and pick a country.`}</div>`;
+  if($('clearc'))$('clearc').onclick=()=>selectCountry(null);
+
+  /* markers */
+  [...mkBub,...mkPin,...mkLab.map(l=>l.mk)].forEach(m=>m.remove());
+  mkBub=[];mkPin=[];mkLab=[];
+
+  // wrapper div is what MapLibre transforms; styling lives on the child
+  const wrap=cls=>{const w=document.createElement('div');w.className='mk '+cls;return w};
+
+  // country bubbles (Europe view) — ignore the radius so zooming out always shows Europe
+  const byC={};all.forEach(m=>(byC[m.sovereign]=byC[m.sovereign]||[]).push(m));
+  for(const c in byC){
+    const g=byC[c],lon=g.reduce((a,m)=>a+m.lon,0)/g.length,lat=g.reduce((a,m)=>a+m.lat,0)/g.length;
+    const sz=Math.round(30+Math.min(g.length,25)*1.5);
+    const w=wrap('mk-bub'),el=document.createElement('div');el.className='bub';
+    el.style.width=el.style.height=sz+'px';el.innerHTML=`<i>${g.length}</i>`;
+    el.onclick=e=>{e.stopPropagation();selectCountry(c)};
+    el.onmouseenter=()=>showTip(el,c,g.length);el.onmouseleave=hideTip;
+    w.appendChild(el);
+    mkBub.push(new maplibregl.Marker({element:w}).setLngLat([lon,lat]).addTo(map));
+  }
+
+  // match pins (detail view)
+  const byS={};ms.forEach(m=>(byS[m.pk]=byS[m.pk]||[]).push(m));
+  for(const pk in byS){
+    const g=byS[pk].sort((a,b)=>a.ko-b.ko),f=g[0];
+    const label=[...new Set(g.map(m=>m.stadium))].length===1?f.stadium:f.city;
+    const w=wrap('mk-pin'),el=document.createElement('div');
+    el.className='pin'+(g.some(m=>!m.note&&Math.floor((new Date(m.ko).setHours(0,0,0,0)-day0)/864e5)===0)?' today':'')
+      +(f.precision==='city'?' approx':'')+(st.active===pk?' active':'');
+    el.style.background=el.style.color=tcol(f.tier);
+    el.title=`${label} — ${g.length} match${g.length===1?'':'es'}`+(f.precision==='city'?' (approximate location)':'');
+    if(g.length>1)el.innerHTML=`<span class="n">${g.length}</span>`;
+    el.onclick=e=>{e.stopPropagation();openStadium(pk,false)};
+    w.appendChild(el);w.dataset.pk=pk;
+    mkPin.push(new maplibregl.Marker({element:w}).setLngLat([f.lon,f.lat]).addTo(map));
+  }
+
+  // city labels (fade in once zoomed past LABEL_ZOOM)
+  const byCity={};ms.forEach(m=>{const k=m.city+'|'+m.country;(byCity[k]=byCity[k]||[]).push(m)});
+  for(const k in byCity){
+    const g=byCity[k],name=g[0].city;
+    const lon=g.reduce((a,m)=>a+m.lon,0)/g.length,lat=g.reduce((a,m)=>a+m.lat,0)/g.length;
+    const w=wrap('mk-lab'),el=document.createElement('span');el.className='clab';el.textContent=name;
+    w.appendChild(el);
+    mkLab.push({mk:new maplibregl.Marker({element:w,anchor:'top'}).setLngLat([lon,lat]).addTo(map),n:name});
+  }
+  declutter();
+
+  if(fit&&ms.length){
+    const bb=new maplibregl.LngLatBounds(st.center,st.center);ms.forEach(m=>bb.extend([m.lon,m.lat]));
+    map.fitBounds(bb,{padding:{top:70,bottom:70,left:70,right:70},maxZoom:9,duration:700});
+  }
+  setCountryState();
+}
+
+function showTip(el,name,n){const t=$('tip'),r=el.getBoundingClientRect(),w=$('map').getBoundingClientRect();
+  t.innerHTML=`${name} — <b>${n}</b> match${n===1?'':'es'}`;
+  t.style.left=(r.left-w.left+r.width/2)+'px';t.style.top=(r.top-w.top)+'px';t.style.display='block'}
+const hideTip=()=>$('tip').style.display='none';
+
+function selectCountry(c,move=true){
+  st.country=c;st.active=null;if(popup){popup.remove();popup=null}
+  hideTip();
+  if(map.getLayer('prov-line'))map.setPaintProperty('prov-line','line-opacity',provOpacity(c));
+  if(move){
+    // the camera passes through low zoom on its way in, so suspend the
+    // zoom-out-to-exit rule until this animation settles
+    animating=true;map.once('moveend',()=>{animating=false});
+    if(c&&countryBounds[c]){
+      const b=countryBounds[c];
+      // a sprawling country (the UK with Shetland, say) can fit below the detail
+      // threshold, so clamp the camera in rather than landing back in Europe view
+      const cam=map.cameraForBounds([[b[0],b[1]],[b[2],b[3]]],{padding:50});
+      map.easeTo({center:cam.center,zoom:Math.min(9,Math.max(cam.zoom,DETAIL_ZOOM+0.1)),duration:800});
+    }else if(!c){
+      map.easeTo({...EURO_VIEW,duration:800});
+    }
+  }
+  applyZoom();render(false);
+}
+
+function openStadium(pk,fly=true){
+  st.active=pk;
+  const g=visible().filter(m=>m.pk===pk).sort((a,b)=>a.ko-b.ko);if(!g.length)return;
+  const f=g[0];if(popup)popup.remove();
+  const same=[...new Set(g.map(m=>m.stadium))];
+  const exact=f.precision==='stadium';
+  // A city-centre point is fine for "is there a game near me" but wrong to navigate to:
+  // the median ground sits 2.7 km from its city centre, and some are over 12 km out.
+  // So an approximate point hands off to a maps SEARCH for that club's ground, per match,
+  // rather than routing someone confidently to the wrong place.
+  const find=m=>`https://www.google.com/maps/search/?api=1&query=`+
+    encodeURIComponent(`${m.home} stadium, ${m.city}`);
+  popup=new maplibregl.Popup({offset:16,maxWidth:'320px'}).setLngLat([f.lon,f.lat]).setHTML(
+    `<div class="pop"><h3>${same.length===1?f.stadium:f.city}</h3><div class="sub">${f.city}, ${f.country} · ${Math.round(f.dist)} km away`+
+    (exact?'':' · <em>city centre, not the ground</em>')+`</div>`+
+    g.map(m=>`<div class="m"><b>${m.home} vs ${m.away}</b><span>${fmtWhen(m)} · ${fmtT(m)} · ${m.league}</span>`+
+      (exact?'':`<a class="findlink" href="${find(m)}" target="_blank" rel="noopener">find the ground \u2192</a>`)+`</div>`).join('')+
+    (exact?`<a href="https://www.google.com/maps/dir/?api=1&destination=${f.lat},${f.lon}" target="_blank" rel="noopener">Directions</a>`:'')
+    +`</div>`).addTo(map);
+  popup.on('close',()=>{st.active=null;render(false)});
+  if(fly)map.flyTo({center:[f.lon,f.lat],zoom:Math.max(map.getZoom(),9),duration:800});
+  render(false);
+  const el=document.querySelector(`.card[data-pk="${pk}"]`);if(el)el.scrollIntoView({block:'nearest'});
+}
+
+function setCenter(c,label){
+  st.center=c;if(youMk)youMk.remove();
+  const el=document.createElement('div');el.className='you';
+  youMk=new maplibregl.Marker({element:el}).setLngLat(c).addTo(map);
+  if(label!==undefined)$('lochint').textContent=label;
+  render(false);
+}
+
+/* ---------- UI ---------- */
+$('dates').innerHTML=[['0','Today'],['1','Tomorrow'],['we','This weekend'],['7','Next 7 days'],['14','Next 14 days']]
+  .map(([k,l])=>`<button class="chip ${k===st.range?'on':''}" data-k="${k}">${l}</button>`).join('');
+function buildTierChips(){
+  const present=[...new Set(MATCHES.map(m=>Math.min(m.tier,4)))].sort();
+  st.tiers=new Set(present);
+  $('tiers').innerHTML=present
+    .map(k=>`<button class="chip tier on" data-t="${k}"><span class="dot" style="background:${TIERS[k][1]}"></span>${TIERS[k][0]}</button>`).join('');
+  $('legend').innerHTML=present.map(k=>`<div><span class="dot" style="background:${TIERS[k][1]}"></span>${TIERS[k][0]}</div>`).join('')
+    +`<div><span class="dot" style="background:var(--you)"></span>You</div>`
+    +`<div style="margin-top:5px;font-size:11px">Hollow pin = city centre, not the ground</div>`;
+}
+
+$('pick').onclick=()=>{st.picking=!st.picking;$('pick').classList.toggle('on',st.picking);
+  map.getCanvas().style.cursor=st.picking?'crosshair':'';
+  $('lochint').textContent=st.picking?'Click anywhere on the map to drop your location.':'Click a country to zoom in. Zoom further for city names.'};
+$('dates').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;st.range=b.dataset.k;
+  document.querySelectorAll('#dates .chip').forEach(x=>x.classList.toggle('on',x===b));render(false)};
+$('tiers').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;const t=Number(b.dataset.t);
+  st.tiers.has(t)?st.tiers.delete(t):st.tiers.add(t);b.classList.toggle('on');render(false)};
+$('rad').oninput=e=>{if(st.country)return;st.radius=Number(e.target.value);render(false)};
+document.querySelector('.sort').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;st.sort=b.dataset.s;
+  document.querySelectorAll('.sort .chip').forEach(x=>x.classList.toggle('on',x===b));render(false)};
+$('list').onclick=e=>{const c=e.target.closest('.card');if(c)openStadium(c.dataset.pk,true)};
+/* ---------- city search ----------
+   The gazetteer is 68k towns and 1.6 MB, so it is fetched the first time someone uses
+   the box rather than up front: most sessions never touch it, and the ones that do can
+   afford a moment on the first keystroke. */
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// Search has to ignore accents, and the characters that are letters in their own right
+// rather than a letter plus a mark - stripping marks turns "Zürich" into "Zurich" but
+// leaves "Brøndby" alone, so those are spelled out.
+const deburr=s=>s.normalize('NFKD').replace(/[\u0300-\u036f]/g,'')
+  .replace(/ø/g,'o').replace(/Ø/g,'O').replace(/æ/g,'ae').replace(/Æ/g,'Ae')
+  .replace(/ß/g,'ss').replace(/ł/g,'l').replace(/Ł/g,'L').replace(/đ/g,'d')
+  .replace(/Đ/g,'D').replace(/ı/g,'i').replace(/İ/g,'I').replace(/þ/g,'th')
+  .replace(/ð/g,'d').toLowerCase();
+
+let CITY_IDX=null,cityFetch=null,cityHits=[],cityHi=-1,FOOTBALL=null;
+function loadCities(){
+  return cityFetch||(cityFetch=fetch('cities.json').then(r=>r.json()).then(d=>{
+    const rows=[];
+    for(const cc in d.p){
+      const p=d.p[cc],names=p.n.split('\n');
+      for(let i=0;i<names.length;i++)
+        rows.push({n:names[i],k:deburr(names[i]),cc,lat:p.y[i]/1e3,lon:p.x[i]/1e3});
+    }
+    return CITY_IDX={rows,country:d.c};
+  }).catch(()=>CITY_IDX={rows:[],country:{},failed:true}));
+}
+function citySearch(q){
+  const k=deburr(q.trim());
+  if(!k||!CITY_IDX)return [];
+  // No population in the gazetteer, so "mil" would rank Milas above Milan. A town that
+  // hosts football in our own data is a decent stand-in for a town people have heard of.
+  FOOTBALL=FOOTBALL||new Set(MATCHES.map(m=>deburr(m.city||'')));
+  const pre=[],sub=[];
+  for(const r of CITY_IDX.rows){
+    const i=r.k.indexOf(k);
+    if(i===0)pre.push(r);else if(i>0&&sub.length<200)sub.push(r);
+  }
+  const rank=(a,b)=>(FOOTBALL.has(b.k)-FOOTBALL.has(a.k))||(a.n.length-b.n.length)
+                    ||a.n.localeCompare(b.n);
+  return pre.sort(rank).concat(sub.sort(rank)).slice(0,8);
+}
+function drawCityRes(msg){
+  const box=$('cityres'),inp=$('city');
+  if(msg){box.innerHTML=`<div class="none">${esc(msg)}</div>`;box.hidden=false;}
+  else if(!cityHits.length){box.hidden=true;}
+  else box.innerHTML=cityHits.map((r,i)=>
+    `<div class="opt${i===cityHi?' on':''}" role="option" data-i="${i}" `+
+    `aria-selected="${i===cityHi}"><b>${esc(r.n)}</b>`+
+    `<span>${esc(CITY_IDX.country[r.cc]||r.cc)}</span></div>`).join('')||'';
+  if(!msg&&cityHits.length)box.hidden=false;
+  inp.setAttribute('aria-expanded',String(!box.hidden));
+}
+function chooseCity(r){
+  if(!r)return;
+  $('city').value=r.n;cityHits=[];cityHi=-1;drawCityRes();
+  setCenter([r.lon,r.lat],`Matches measured from ${r.n}. Click a country to zoom in.`);
+}
+$('city').value=HOME[0];
+$('city').addEventListener('focus',loadCities);
+$('city').addEventListener('input',async()=>{
+  const inp=$('city'),q=inp.value;
+  if(!q.trim()){cityHits=[];cityHi=-1;drawCityRes();return}
+  if(!CITY_IDX){drawCityRes('Loading towns…');await loadCities();if(inp.value!==q)return}
+  if(CITY_IDX.failed){drawCityRes('Could not load the town list.');return}
+  cityHits=citySearch(q);cityHi=cityHits.length?0:-1;
+  drawCityRes(cityHits.length?null:'No town of that name.');
+});
+$('city').addEventListener('keydown',e=>{
+  if(e.key==='Escape'){cityHits=[];cityHi=-1;drawCityRes();return}
+  if(!cityHits.length)return;
+  if(e.key==='ArrowDown'){e.preventDefault();cityHi=(cityHi+1)%cityHits.length;drawCityRes()}
+  else if(e.key==='ArrowUp'){e.preventDefault();cityHi=(cityHi-1+cityHits.length)%cityHits.length;drawCityRes()}
+  else if(e.key==='Enter'){e.preventDefault();chooseCity(cityHits[cityHi])}
+});
+// mousedown, not click: the input blurs first and the list would be gone by then
+$('cityres').addEventListener('mousedown',e=>{
+  const o=e.target.closest('.opt');if(!o)return;
+  e.preventDefault();chooseCity(cityHits[+o.dataset.i]);
+});
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.search')){cityHits=[];cityHi=-1;drawCityRes()}
+});
+
+$('back').onclick=()=>selectCountry(null);
+$('ptoggle').onclick=()=>{
+  const app=document.querySelector('.app'),hid=app.classList.toggle('collapsed'),b=$('ptoggle');
+  b.setAttribute('aria-expanded',String(!hid));
+  b.title=hid?'Show the filters':'Hide the filters';
+  $('sidepanel').inert=hid;        // keep the hidden panel out of tab order and screen readers
+  // MapLibre measures its container once and caches it, so without a nudge the canvas
+  // keeps the old width and the space it just gained renders blank. Nudge it for the
+  // length of the transition rather than only at the end, or the map jumps at the finish.
+  const t0=performance.now();
+  (function step(){map.resize();if(performance.now()-t0<380)requestAnimationFrame(step)})();
+};
+$('scopex').onclick=()=>selectCountry(null);
+
+/* country hover + click */
+map.on('mousemove','land',e=>{
+  if(st.picking)return;
+  const f=e.features[0];if(!f)return;
+  if(hoverId!==null&&hoverId!==f.id)map.setFeatureState({source:'eu',id:hoverId},{hover:false});
+  hoverId=f.id;map.setFeatureState({source:'eu',id:hoverId},{hover:true});
+  map.getCanvas().style.cursor='pointer';
+  if(map.getZoom()<DETAIL_ZOOM){
+    const n=allTL().filter(m=>m.sovereign===f.properties.name).length;
+    const t=$('tip'),w=$('map').getBoundingClientRect();
+    t.innerHTML=`${f.properties.name} — <b>${n}</b> match${n===1?'':'es'}`;
+    t.style.left=(e.point.x)+'px';t.style.top=(e.point.y-4)+'px';t.style.display='block';
+  }
+});
+map.on('mouseleave','land',()=>{
+  if(hoverId!==null)map.setFeatureState({source:'eu',id:hoverId},{hover:false});
+  hoverId=null;map.getCanvas().style.cursor=st.picking?'crosshair':'';hideTip()});
+map.on('click',e=>{
+  if(st.picking){st.picking=false;$('pick').classList.remove('on');map.getCanvas().style.cursor='';
+    $('city').value='';
+    setCenter([e.lngLat.lng,e.lngLat.lat],'Custom location set.');return}
+  const f=map.queryRenderedFeatures(e.point,{layers:['land']})[0];
+  if(f)selectCountry(f.properties.name);
+});
+map.on('zoom',()=>{
+  // zooming right back out drops the country scope, returning to the picker
+  if(!animating&&st.country&&map.getZoom()<DETAIL_ZOOM-0.7){selectCountry(null,false);return}
+  applyZoom();
+});
+map.on('moveend',declutter);
+
+/* ---------- boot ---------- */
+Promise.all([
+  fetch('matches.json').then(r=>r.json()),
+  fetch('europe.json').then(r=>r.json()),
+  // Borders are decoration, not data: if this one file is missing or malformed the map
+  // should still open, just without the dotted lines.
+  fetch('provinces.json').then(r=>r.ok?r.json():null).catch(()=>null)
+]).then(([raw,geo,prov])=>{
+  MATCHES=loadMatches(raw);GEO=geo;
+  buildTierChips();
+  geo.features.forEach(f=>countryBounds[f.properties.name]=f.properties.bounds);
+  const dates=MATCHES.map(m=>m.ko).sort((x,y)=>x-y);
+  const approx=new Set(MATCHES.filter(m=>m.precision==='city').map(m=>m.pk)).size;
+  const pts=new Set(MATCHES.map(m=>m.pk)).size;
+  // Counted rather than written down: the league list grows every time a calendar
+  // lands, and a hardcoded number silently goes stale.
+  const nL=new Set(MATCHES.map(m=>m.league)).size, nC=new Set(MATCHES.map(m=>sov(m.country))).size;
+  $('tagline').textContent=`Real 2026/27 fixtures across ${nL} leagues in ${nC} countries. `+
+    `Pick a country, then zoom for city names.`;
+  $('footnote').innerHTML=`${MATCHES.length} upcoming fixtures · openfootball + league calendars · `+
+    `${pts-approx}/${pts} venues at ground level, the rest city centres`;
+  const put=()=>{if(ready)return;map.getSource('eu').setData(geo);
+    if(prov)map.getSource('prov').setData(prov);ready=true;applyZoom();setCenter(st.center,undefined)};
+  if(map.isStyleLoaded())put();else map.on('load',put);
+}).catch(err=>{
+  $('count').textContent='Failed to load data';
+  $('list').innerHTML=`<div class="empty">Could not load map data.<br>${err}</div>`;
+});
+</script>
+</body>
+</html>

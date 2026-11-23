@@ -1,0 +1,35 @@
+@font-face{font-family:"Space Grotesk";src:url("fonts/SpaceGrotesk.woff2") format("woff2");
+  font-weight:300 700;font-style:normal;font-display:swap}
+/* Shared styling for the standing pages (credits, privacy, terms, disclosure).
+   Deliberately a separate stylesheet: these pages outlive any redesign of the map. */
+:root{
+  --bg:#0a141d; --panel:#0f1d29; --panel2:#142636; --line:#1f3447;
+  --text:#e8f1f7; --muted:#8aa3b6; --accent:#3ddc84;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);
+  font-family:"Space Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:16px;line-height:1.6}
+.wrap{max-width:720px;margin:0 auto;padding:36px 22px 80px}
+header{display:flex;align-items:center;gap:11px;margin-bottom:30px}
+.logo{width:24px;height:24px;border-radius:50%;border:2px solid var(--accent);position:relative;flex:none}
+.logo::after{content:"";position:absolute;inset:5px;border-radius:50%;background:var(--accent)}
+header a{color:var(--text);text-decoration:none;font-weight:700;font-size:19px;letter-spacing:-.3px}
+h1{font-size:27px;line-height:1.25;margin:0 0 6px}
+h2{font-size:18px;margin:34px 0 8px}
+h3{font-size:15px;margin:22px 0 6px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}
+p,li{color:#cfe0ec}
+.lede{color:var(--muted);margin:0 0 26px}
+a{color:var(--accent)}
+ul{padding-left:20px}
+li{margin:5px 0}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14.5px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.7px}
+.note{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent);
+  border-radius:7px;padding:13px 16px;margin:20px 0;font-size:14.5px;color:#cfe0ec}
+.todo{border-left-color:#ffd24a}
+footer{margin-top:50px;padding-top:18px;border-top:1px solid var(--line);
+  color:var(--muted);font-size:13.5px;display:flex;gap:16px;flex-wrap:wrap}
+footer a{color:var(--muted)}
+code{background:var(--panel2);padding:1px 5px;border-radius:4px;font-size:13.5px}

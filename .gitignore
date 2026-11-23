@@ -1,0 +1,6 @@
+node_modules/
+__pycache__/
+*.pyc
+# dist/ IS committed: Cloudflare serves it directly, and the nightly job updates it.
+# Only build leftovers are ignored.
+*.zip

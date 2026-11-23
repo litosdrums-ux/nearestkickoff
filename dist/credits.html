@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Credits and data licences — Nearest Kickoff</title>
+<meta name="robots" content="index,follow">
+<link rel="stylesheet" href="page.css">
+</head><body><div class="wrap">
+<header><span class="logo"></span><a href="index.html">Nearest Kickoff</a></header>
+
+<h1>Credits and data licences</h1>
+<p class="lede">Every number on the map comes from somewhere. This page says where, and under
+what terms.</p>
+
+<h2>Data sources</h2>
+<table>
+  <tr><th>What</th><th>Source</th><th>Licence</th></tr>
+  <tr>
+    <td>Fixture lists</td>
+    <td><a href="https://github.com/openfootball" target="_blank" rel="noopener">openfootball</a>,
+        plus season calendars published by the leagues and federations themselves</td>
+    <td>Public domain. Fixture lists are not protected by copyright in the EU
+        (<a href="https://curia.europa.eu/juris/liste.jsf?num=C-604/10" target="_blank" rel="noopener">CJEU
+        C-604/10</a>)</td>
+  </tr>
+  <tr>
+    <td>Stadium coordinates</td>
+    <td><a href="https://www.wikidata.org" target="_blank" rel="noopener">Wikidata</a></td>
+    <td>CC0 — public domain dedication, no attribution required</td>
+  </tr>
+  <tr>
+    <td>Town coordinates and names</td>
+    <td><a href="https://www.geonames.org" target="_blank" rel="noopener">GeoNames</a>, via
+        <a href="https://github.com/lutangar/cities.json" target="_blank" rel="noopener">lutangar/cities.json</a></td>
+    <td><a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>
+        — attribution required</td>
+  </tr>
+  <tr>
+    <td>Country outlines and province borders</td>
+    <td><a href="https://www.naturalearthdata.com" target="_blank" rel="noopener">Natural Earth</a>
+        (10m cultural vectors)</td>
+    <td>Public domain</td>
+  </tr>
+  <tr>
+    <td>Typeface</td>
+    <td><a href="https://github.com/floriankarsten/space-grotesk" target="_blank" rel="noopener">Space
+        Grotesk</a> by Florian Karsten, self-hosted
+        (<a href="fonts/SpaceGrotesk-OFL.txt">licence</a>)</td>
+    <td>SIL Open Font License 1.1</td>
+  </tr>
+  <tr>
+    <td>Map rendering</td>
+    <td><a href="https://maplibre.org" target="_blank" rel="noopener">MapLibre GL JS</a> v4.7.1</td>
+    <td>3-Clause BSD</td>
+  </tr>
+</table>
+
+<h2>How accurate the pins are</h2>
+<p>Each venue is marked either at the ground itself or at the centre of its town, and the map
+says which: a <strong>solid pin is the stadium</strong>, a <strong>hollow pin is the town
+centre</strong> and means we could not confirm the ground. A hollow pin links to a map search
+rather than directions, because sending someone driving to a coordinate we are not sure about
+is worse than admitting what we do not know.</p>
+<p>Every venue is checked against the landmass of the country it belongs to before the data is
+published, and the build is refused outright if a fixture has no venue at all.</p>
+
+<h2>Venues verified by hand</h2>
+<p>Wikidata lists a club's former home grounds alongside its current one, and our extract cannot
+always tell them apart. Where a club has more than one, the ground is checked by hand against a
+named public source rather than guessed. That list, and the source checked for each entry, is in
+<code>ingest/verified-venues.json</code> in the project.</p>
+
+<h2>Not affiliated</h2>
+<p>Nearest Kickoff is an independent project. It is not affiliated with, endorsed by, or connected to
+any club, league, federation or ticket seller named on this site. Club and competition names are
+used descriptively to identify the fixtures they refer to.</p>
+
+<h2>Corrections</h2>
+<p>If a pin is in the wrong place or a fixture is wrong, tell us and it gets fixed — wrong data
+is the thing this project cares most about. Contact: <a href="mailto:contact@nearestkickoff.com">contact@nearestkickoff.com</a>.</p>
+
+<footer>
+  <a href="index.html">Map</a><a href="privacy.html">Privacy</a>
+  <a href="terms.html">Terms</a><a href="disclosure.html">Affiliate disclosure</a>
+</footer>
+</div></body></html>

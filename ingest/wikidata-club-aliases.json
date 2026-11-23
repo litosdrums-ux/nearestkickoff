@@ -1,0 +1,4 @@
+{
+  "_comment": "Our fixture name -> the label Wikidata uses, for clubs whose names share no words. Only needed where normalisation cannot bridge the two.",
+  "FC Internazionale Milano": "Inter Milan"
+}
