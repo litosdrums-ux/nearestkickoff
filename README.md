@@ -253,6 +253,25 @@ which is worth doing only if it actually looks wrong once the Süper Lig feed is
    width, so the space just gained renders blank. Call `map.resize()` across the whole
    transition, not only at the end, or the map snaps into place at the finish.
 
+## Adding a country
+
+Venue coordinates come from Wikidata, and the query covers **every UEFA country** rather than
+only the ones currently on the map - so a new league in a new country usually resolves to real
+grounds the moment its calendar is added, with no venue work at all.
+
+Refresh it from the **"Refresh venue data from Wikidata"** action on GitHub (run by hand; it
+hits a free public endpoint about fifty times, so it is not on a schedule). It cannot run from
+a sandboxed environment, because `query.wikidata.org` is not reachable from one.
+
+Two things make that safe to re-run:
+
+- **QIDs are never hardcoded.** The script asks Wikidata which item each ISO 3166-1 country
+  code belongs to. A mistyped QID does not error - it silently returns a different country's
+  clubs, and you find out when a pin appears in the wrong nation.
+- **It refuses to shrink the data.** A throttled or timed-out endpoint returns fewer rows
+  rather than an error, which would quietly demote known grounds to city-centre pins. If any
+  country comes back more than 10% smaller than what is already held, nothing is written.
+
 ## Publishing
 
 The site is static: `web/` is the whole thing, and any static host will serve it as is.

@@ -16,18 +16,45 @@ HERE = pathlib.Path(__file__).resolve().parent
 DATA, WEB = HERE.parent/'data', HERE.parent/'web'
 ENDPOINT = 'https://query.wikidata.org/sparql'
 # Wikidata blocks requests without a descriptive agent. Put a real contact in here.
-UA = 'PitchRadar/0.1 (https://example.com; you@example.com)'
+UA = 'NearestKickoff/1.0 (https://nearestkickoff.com; contact@nearestkickoff.com)'
 
-# country label -> Wikidata QID. Verify a QID by opening wikidata.org/wiki/<QID>.
-COUNTRIES = {
-    'England': 'Q145', 'Scotland': 'Q145', 'Wales': 'Q145',   # all under the UK item
-    'Spain': 'Q29', 'Italy': 'Q38', 'Germany': 'Q183', 'France': 'Q142',
-    'Netherlands': 'Q55', 'Portugal': 'Q45', 'Belgium': 'Q31', 'Austria': 'Q40',
-    'Switzerland': 'Q39', 'Greece': 'Q41', 'Türkiye': 'Q43', 'Denmark': 'Q35',
+# Every country UEFA plays in, by ISO 3166-1 alpha-2 code.
+#
+# QIDs are deliberately NOT hardcoded. A wrong QID does not error - it silently returns
+# another country's clubs, and you find out when a pin lands in the wrong nation. So the
+# script asks Wikidata for the QID behind each ISO code (property P297) and uses what it
+# is told. ISO codes are stable and easy to check by eye; QIDs are neither.
+#
+# England, Scotland, Wales and Northern Ireland are all GB: Wikidata files their clubs
+# under the United Kingdom, not under the home nations.
+ISO = [
+    'AL','AD','AM','AT','AZ','BY','BE','BA','BG','HR','CY','CZ','DK','EE','FO','FI',
+    'FR','GE','DE','GI','GR','HU','IS','IE','IL','IT','KZ','LV','LI','LT','LU','MT',
+    'MD','MC','ME','NL','MK','NO','PL','PT','RO','RS','SK','SI','ES','SE','CH','TR',
+    'UA','GB','SM','RU',
+]
+# Label language per country, so a club's local name is collected alongside its English
+# one. Anything not listed falls back to English, which is never wrong, only thinner.
+ISO_LANG = {
+    'AT':'de','BE':'nl','BG':'bg','CH':'de','CZ':'cs','DE':'de','DK':'da','EE':'et',
+    'ES':'es','FI':'fi','FR':'fr','GR':'el','HR':'hr','HU':'hu','IS':'is','IT':'it',
+    'LT':'lt','LV':'lv','MD':'ro','MK':'mk','NL':'nl','NO':'no','PL':'pl','PT':'pt',
+    'RO':'ro','RS':'sr','RU':'ru','SE':'sv','SI':'sl','SK':'sk','TR':'tr','UA':'uk',
+    'AL':'sq','BA':'bs','ME':'sr','CY':'el','IL':'he','GE':'ka','AM':'hy','AZ':'az',
+    'BY':'be','KZ':'kk','FO':'fo','MT':'mt','LU':'fr','MC':'fr','LI':'de','SM':'it',
 }
-# P31 instance of · P279 subclass of · P17 country · P115 home venue · P625 coordinates
+
+# Resolve ISO alpha-2 (P297) to the country item, rather than trusting a written-down QID.
+QID_QUERY = """
+SELECT ?iso ?country WHERE {
+  VALUES ?iso { %s }
+  ?country wdt:P297 ?iso .
+}
+"""
+
+# P31 instance of - P279 subclass of - P17 country - P115 home venue - P625 coordinates
 # Q476028 association football club
-QUERY = '''
+QUERY = """
 SELECT ?club ?clubLabel ?clubAlt ?venue ?venueLabel ?coord WHERE {
   ?club wdt:P31/wdt:P279* wd:Q476028 ;
         wdt:P17 wd:%(country)s ;
@@ -36,9 +63,7 @@ SELECT ?club ?clubLabel ?clubAlt ?venue ?venueLabel ?coord WHERE {
   OPTIONAL { ?club skos:altLabel ?clubAlt FILTER(LANG(?clubAlt) IN ("en","%(lang)s")) }
   SERVICE wikibase:label { bd:serviceParam wikibase:language "en,%(lang)s". }
 }
-'''
-LANG = {'Q38':'it','Q29':'es','Q183':'de','Q142':'fr','Q55':'nl','Q45':'pt',
-        'Q145':'en','Q31':'nl','Q40':'de','Q39':'de','Q41':'el','Q43':'tr','Q35':'da'}
+"""
 
 def sparql(query):
     url = ENDPOINT + '?' + urllib.parse.urlencode({'query': query, 'format': 'json'})
@@ -50,14 +75,43 @@ def point(wkt):                      # 'Point(11.2824 43.7809)' -> (lat, lon)
     m = re.match(r'Point\(([-\d.]+) ([-\d.]+)\)', wkt)
     return (float(m.group(2)), float(m.group(1))) if m else None
 
+def resolve_qids(isos):
+    """Ask Wikidata which item each ISO code belongs to, instead of trusting a list of
+    QIDs written down by hand. A mistyped QID returns another country's clubs silently."""
+    values = ' '.join(f'"{c}"' for c in isos)
+    out = {}
+    for b in sparql(QID_QUERY % values):
+        out[b['iso']['value']] = b['country']['value'].rsplit('/', 1)[-1]
+    missing = [c for c in isos if c not in out]
+    if missing:
+        print(f'  no Wikidata item for ISO {missing} - skipping those')
+    return out
+
+
 def main():
-    out, seen = [], set()
-    for qid in sorted(set(COUNTRIES.values())):
-        print(f'  querying {qid} ...', flush=True)
+    isos = ISO if '--all' in sys.argv else sorted(set(ISO))
+    print(f'resolving {len(isos)} ISO codes to Wikidata items ...', flush=True)
+    try:
+        qids = resolve_qids(isos)
+    except Exception as e:
+        print(f'could not reach query.wikidata.org: {e}')
+        print('Nothing was changed. This script needs unrestricted internet access - '
+              'run it from the "Refresh venue data from Wikidata" GitHub Action.')
+        return 1
+
+    prev = []
+    if (DATA/'wikidata-venues.json').exists():
+        prev = json.load(open(DATA/'wikidata-venues.json', encoding='utf-8'))
+    before = collections.Counter(v['countryQid'] for v in prev)
+
+    out, seen, failed = [], set(), []
+    for iso, qid in sorted(qids.items()):
+        print(f'  {iso} ({qid}) ...', end='', flush=True)
         try:
-            rows = sparql(QUERY % {'country': qid, 'lang': LANG.get(qid, 'en')})
+            rows = sparql(QUERY % {'country': qid, 'lang': ISO_LANG.get(iso, 'en')})
         except Exception as e:
-            print(f'    FAILED {qid}: {e}'); continue
+            print(f' FAILED: {e}'); failed.append((iso, qid)); continue
+        n = 0
         for b in rows:
             cid = b['club']['value'].rsplit('/', 1)[-1]
             c = point(b['coord']['value'])
@@ -69,12 +123,31 @@ def main():
                         'alt': b.get('clubAlt', {}).get('value'),
                         'stadium': b['venueLabel']['value'],
                         'lat': round(c[0], 5), 'lon': round(c[1], 5), 'countryQid': qid})
-        print(f'    {len(rows)} rows')
+            n += 1
+        print(f' {n} club-venue pairs')
         time.sleep(2)                 # be polite to a free public endpoint
+
+    # Safety gate. A timeout or a throttled endpoint returns FEWER rows, not an error,
+    # so a plain overwrite can quietly demote venues we already had to city-centre pins.
+    # Refuse the write if any country we already covered came back materially thinner.
+    after = collections.Counter(v['countryQid'] for v in out)
+    lost = {q: (before[q], after[q]) for q in before if after[q] < before[q] * 0.9}
+    if lost and '--force' not in sys.argv:
+        print('\nREFUSING TO WRITE - these countries came back smaller than what we hold:')
+        for q, (b, a) in sorted(lost.items()):
+            print(f'  {q}: {b} -> {a}')
+        print('Nothing was changed. Re-run later, or pass --force if this is expected.')
+        return 1
+
     DATA.mkdir(exist_ok=True)
     (DATA/'wikidata-venues.json').write_text(json.dumps(out, ensure_ascii=False))
-    print(f'\nwrote {len(out)} club-venue pairs -> data/wikidata-venues.json')
+    print(f'\nwrote {len(out)} club-venue pairs across {len(after)} countries '
+          f'-> data/wikidata-venues.json  (was {len(prev)})')
+    if failed:
+        print(f'failed, worth re-running: {[i for i, _ in failed]}')
     if '--check' in sys.argv: check(out)
+    return 0
+
 
 DROP = {'fc','afc','cf','sc','ac','as','ssc','us','ud','rc','cd','sd','club','de','calcio',
         'bk','sv','vfl','vfb','fsv','bsc','cp','sl','rcd','ca','ogc','losc','bc','cfc','the'}
@@ -110,4 +183,4 @@ def check(wd):
         for d, c in gaps[:5]: print(f'   {d:7.2f} km  {c}')
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())

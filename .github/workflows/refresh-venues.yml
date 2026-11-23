@@ -1,0 +1,51 @@
+name: Refresh venue data from Wikidata
+
+# Run by hand, not on a schedule: venues change about once a season, and this hits a free
+# public endpoint ~50 times. Use it when adding a country the map does not yet cover.
+on:
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Write even if a country returns fewer venues than we already hold'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  venues:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Resolves every ISO country code to its Wikidata item, then pulls club -> home
+      # venue coordinates for each. Wikidata is CC0, so unlike OpenStreetMap there is no
+      # share-alike obligation on a database built from it.
+      - name: Query Wikidata
+        run: |
+          python3 ingest/wikidata-venues.py ${{ inputs.force && '--force' || '' }}
+
+      # Venue data feeds both pipelines, so rebuild and re-check before committing.
+      - name: Rebuild and verify
+        run: |
+          python3 ingest/build.py
+          python3 ingest/verify.py
+          ./build-site.sh
+
+      - name: Commit if anything changed
+        run: |
+          git config user.name  "nearestkickoff-bot"
+          git config user.email "contact@nearestkickoff.com"
+          git add data/wikidata-venues.json web/ dist/
+          if git diff --staged --quiet; then
+            echo "No venue changes."
+          else
+            git commit -m "Refresh venue data from Wikidata: $(date -u +%Y-%m-%d)"
+            git push
+          fi
