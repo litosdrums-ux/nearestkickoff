@@ -47,6 +47,19 @@
      privacy page's "no third-party requests" claim untrue. */
   .legal a.coffee{color:var(--t2)}
   .legal a.coffee:hover{border-bottom-color:var(--t2)}
+  /* A quiet text link, deliberately not the filled button that Directions uses:
+     Directions is the thing the visitor asked for, this is the thing we are paid for,
+     and the paid one should not shout louder than the useful one. */
+  .pop a.tix{display:inline-block;margin-top:5px;background:none;padding:0;border-radius:0;
+    color:#e0a94a;font-size:11.5px;font-weight:500;text-decoration:none}
+  .pop a.tix:hover{text-decoration:underline}
+  /* Marked on the link itself, not only on the disclosure page: EU and UK rules want
+     the commercial nature apparent at the point of the link, not one click away. */
+  /* Must stay legible: the label is what makes the commercial relationship visible
+     at the point of the link, so it cannot be low-contrast decoration. */
+  .pop .aff{font-size:9px;letter-spacing:.6px;text-transform:uppercase;color:#9bb0c2;
+    border:1px solid #44596b;border-radius:3px;padding:1px 4px;margin-left:5px;
+    font-weight:600;vertical-align:1px}
   .chip{background:var(--panel2);border:1px solid var(--line);color:var(--text);font:inherit;font-size:12.5px;padding:6px 10px;border-radius:999px;cursor:pointer;transition:.15s}
   .chip:hover{border-color:#34536b}
   .chip.on{background:var(--accent);border-color:var(--accent);color:#04210f;font-weight:700}
@@ -164,7 +177,7 @@
   .pop .m span{color:var(--muted);font-size:12px}
   .pop .findlink{display:inline-block;margin-top:5px;background:none;color:#7fd4ff;font-size:11.5px;font-weight:500;padding:0;text-decoration:none}
   .pop .findlink:hover{text-decoration:underline}
-  .pop>div>a:not(.findlink),.pop>a{display:inline-block;margin-top:10px;color:#04210f;background:var(--accent);padding:6px 12px;border-radius:8px;font-size:12.5px;font-weight:700;text-decoration:none}
+  .pop>div>a:not(.findlink):not(.tix),.pop>a{display:inline-block;margin-top:10px;color:#04210f;background:var(--accent);padding:6px 12px;border-radius:8px;font-size:12.5px;font-weight:700;text-decoration:none}
   @media (max-width:820px){
     .app{grid-template-columns:1fr;grid-template-rows:46vh 1fr}
     /* the panel is below the map here, so it is the second row that collapses */
@@ -504,6 +517,43 @@ function selectCountry(c,move=true){
   applyZoom();render(false);
 }
 
+// ---- Ticket links (affiliate) -------------------------------------------------
+// Sports Events 365 runs Post Affiliate Pro: appending a_aid to any page on their
+// site tracks the referral, so these are ordinary links. No script, no pixel, no
+// redirect hop - which is why this site still sets no cookies and loads nothing
+// from anyone else. Do not swap these for their widget without reading privacy.html.
+//
+// Their match pages are /event/<numeric id> with no slug, so a link to a SPECIFIC
+// fixture cannot be built from team names - that needs their API. These go to the
+// competition page, which lists the fixtures with prices. Hence "Find tickets"
+// rather than "Buy tickets": we are sending you to look, not promising a seat.
+//
+// Slugs are verified by hand, one at a time, because they are not predictable:
+// Portugal is portuguese-league, France is french-ligue-1, Scotland is
+// scottish-premier. A guessed slug is a dead link, so a league absent from this
+// table simply gets no ticket link. Verify a new one before adding it.
+//
+// England and Wales are deliberately absent. s.166 of the Criminal Justice and
+// Public Order Act 1994 makes it an offence for an unauthorised person to offer
+// tickets for a designated football match, which covers essentially all
+// professional football there, and the Violent Crime Reduction Act 2006 extended
+// it to online sales. Do not add premier-league or the-championship-league without
+// a legal opinion first.
+const AFF='kgqtwz0jufkbm';
+const TICKETS={
+  'Serie A':'serie-a', 'La Liga':'la-liga', 'Bundesliga':'bundesliga',
+  'Ligue 1':'french-ligue-1', 'Eredivisie':'eredivisie-dutch-league',
+  'Primeira Liga':'portuguese-league', 'Scottish Premiership':'scottish-premier',
+};
+const ticketUrl=m=>{
+  const slug=TICKETS[m.league];
+  if(!slug) return null;
+  // data1 tags the click by league, so the affiliate dashboard shows which ones
+  // actually convert rather than one undifferentiated pile.
+  return `https://www.sportsevents365.com/dock/competition/${slug}`+
+         `?a_aid=${AFF}&data1=${encodeURIComponent(slug)}`;
+};
+
 function openStadium(pk,fly=true){
   st.active=pk;
   const g=visible().filter(m=>m.pk===pk).sort((a,b)=>a.ko-b.ko);if(!g.length)return;
@@ -520,7 +570,10 @@ function openStadium(pk,fly=true){
     `<div class="pop"><h3>${same.length===1?f.stadium:f.city}</h3><div class="sub">${f.city}, ${f.country} · ${Math.round(f.dist)} km away`+
     (exact?'':' · <em>city centre, not the ground</em>')+`</div>`+
     g.map(m=>`<div class="m"><b>${m.home} vs ${m.away}</b><span>${fmtWhen(m)} · ${fmtT(m)} · ${m.league}</span>`+
-      (exact?'':`<a class="findlink" href="${find(m)}" target="_blank" rel="noopener">find the ground \u2192</a>`)+`</div>`).join('')+
+      (exact?'':`<a class="findlink" href="${find(m)}" target="_blank" rel="noopener">find the ground \u2192</a>`)+
+      (ticketUrl(m)?`<a class="tix" href="${ticketUrl(m)}" target="_blank" rel="sponsored nofollow noopener"
+         title="Opens the ${m.league} page on Sports Events 365. We may earn a commission; the price is the same either way.">Find tickets <span class="aff">affiliate</span></a>`:'')+
+      `</div>`).join('')+
     (exact?`<a href="https://www.google.com/maps/dir/?api=1&destination=${f.lat},${f.lon}" target="_blank" rel="noopener">Directions</a>`:'')
     +`</div>`).addTo(map);
   popup.on('close',()=>{st.active=null;render(false)});

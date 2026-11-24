@@ -296,6 +296,44 @@ Adding a *league* is different: run the full ingest — `calendars.py`, `build.p
 `verify.py`, `build-site.sh` — and commit. The nightly job only refreshes the
 feed-based leagues, so a new calendar-file league will not appear until you do.
 
+## Ticket links (affiliate)
+
+Sports Events 365 runs Post Affiliate Pro, so a referral is tracked by appending
+`a_aid` to any page on their site. These are therefore **ordinary links** — no script,
+no pixel, no redirect hop — which is why the site still sets no cookies and loads nothing
+from anyone else. Do not replace them with an affiliate widget without rewriting
+`privacy.html`, which currently says truthfully that the page makes no third-party
+requests.
+
+**They cannot deep-link to a fixture.** Their match pages are `/event/<numeric id>` with
+no slug, so a link to a specific match cannot be built from team names; that needs their
+API. Links go to the *competition* page, which lists matches with prices — hence "Find
+tickets" rather than "Buy tickets". The link is labelled `affiliate` where it appears,
+because EU and UK rules want the commercial relationship visible at the link, not one
+click away, and it carries `rel="sponsored nofollow noopener"`.
+
+**Slugs are verified by hand, never guessed**, because they are not predictable:
+
+| League | Slug |
+|---|---|
+| Serie A | `serie-a` |
+| La Liga | `la-liga` |
+| Bundesliga | `bundesliga` |
+| Ligue 1 | `french-ligue-1` |
+| Eredivisie | `eredivisie-dutch-league` |
+| Primeira Liga | `portuguese-league` |
+| Scottish Premiership | `scottish-premier` |
+
+That is 1,448 of 5,873 fixtures. A league absent from `TICKETS` in `index.html` simply
+gets no link — a guessed slug is a dead link, and `super-league` is a live page with no
+events on it, which is worse.
+
+**England and Wales are excluded deliberately.** See the s.166 note under Publishing.
+Do not add `premier-league` or `the-championship-league` without a legal opinion.
+
+`data1` tags each click by league, so the affiliate dashboard shows which competitions
+convert rather than one undifferentiated pile.
+
 ## Publishing
 
 The site is static: `web/` is the whole thing, and any static host will serve it as is.
