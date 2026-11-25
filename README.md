@@ -291,6 +291,19 @@ most important places *inside the current view*. The file is pre-sorted by Natur
 scalerank, so "first N in view" is "biggest N in view", and it adapts by itself - capitals
 in a wide view, suburbs in a tight one.
 
+**Two sources, because one was not enough.** Natural Earth has about a thousand places
+for all of Europe: plenty at country width, almost nothing in a tight view, so labels
+*thinned out as you zoomed in* - backwards, since close up is exactly when you need to
+know what you are looking at. Past `DENSE_ZOOM` the 68,000-town gazetteer the search box
+already uses fills the gaps. It has no population, but at that range any nearby town is
+orientation. The cost is that `cities.json` (0.66 MB gzipped) now loads when you zoom
+into a country as well as when you use the search box.
+
+**Dense labels are picked on a grid, not by distance from the centre.** Nearest-first
+piles every label into the middle, where the declutter pass throws most of them away - a
+spent budget and a half-empty map. One town per grid cell spends it on coverage and
+labels the edges too.
+
 Match cities are decluttered first and town labels fill the gaps, so a town label can
 never hide the reason the map exists. Town labels are dimmer and lighter by design.
 

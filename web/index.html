@@ -391,6 +391,7 @@ function applyZoom(){
   // small dots when zoomed out, so a pin never covers a region it is not in
   el.style.setProperty('--pz',Math.max(12,Math.min(26,12+(z-5)*2.6)).toFixed(1));
   if(z>=DETAIL_ZOOM)loadPlaces();
+  if(z>=DENSE_ZOOM&&!CITY_IDX)loadCities().then(renderPlaces);
   $('banner').textContent=el.dataset.mode==='euro'?'Click a country to see its matches'
     :z<LABEL_ZOOM?'Zoom in for city names':'';
   $('banner').style.opacity=z>=LABEL_ZOOM?0:1;
@@ -419,6 +420,14 @@ async function loadPlaces(){
 // Natural Earth's scalerank, so "first N in view" is "biggest N in view".
 const PLACE_BUDGET=z=> z<6?22 : z<7.5?34 : z<9?44 : 55;
 
+// Natural Earth holds about a thousand places for the whole of Europe, which is plenty
+// at country width and almost nothing once you zoom into a region: labels THINNED OUT
+// as you zoomed in, which is backwards - close up is exactly when you need to know
+// which town you are looking at. Past this zoom the gazetteer the search box already
+// uses (68,000 towns) fills the gaps. It has no population, but at this range any
+// nearby town is useful orientation and the nearest ones are the relevant ones.
+const DENSE_ZOOM=6.2;
+
 function renderPlaces(){
   for(const m of mkPlace)m.mk.remove();
   mkPlace=[];
@@ -436,6 +445,34 @@ function renderPlaces(){
     w.appendChild(el);
     mkPlace.push({mk:new maplibregl.Marker({element:w,anchor:'top'})
       .setLngLat([x,y]).addTo(map),n:f.properties.n});
+  }
+
+  if(z>=DENSE_ZOOM&&CITY_IDX&&!CITY_IDX.failed&&mkPlace.length<budget){
+    // One town per grid cell rather than the N nearest the centre. Nearest-first piles
+    // every label into the middle of the screen, where the declutter pass then throws
+    // most of them away - a full budget and a half-empty map. A grid spends the budget
+    // on coverage instead, and leaves the edges labelled too.
+    const taken=new Set(mkPlace.map(m=>m.n));
+    const W=b.getWest(),E=b.getEast(),S=b.getSouth(),N=b.getNorth();
+    const cols=7,rows=5,cell=new Map();
+    for(const r of CITY_IDX.rows){
+      if(r.lon<W||r.lon>E||r.lat<S||r.lat>N||taken.has(r.n))continue;
+      const cx=Math.min(cols-1,Math.floor((r.lon-W)/(E-W)*cols));
+      const cy=Math.min(rows-1,Math.floor((r.lat-S)/(N-S)*rows));
+      const key=cy*cols+cx;
+      // Keep the cell's most central town, so labels do not hug the cell borders.
+      const dx=(r.lon-W)/(E-W)*cols-cx-0.5, dy=(r.lat-S)/(N-S)*rows-cy-0.5;
+      const d=dx*dx+dy*dy, cur=cell.get(key);
+      if(!cur||d<cur[0])cell.set(key,[d,r]);
+    }
+    const picks=[...cell.values()].map(v=>v[1]);
+    for(const r of picks.slice(0,budget-mkPlace.length)){
+      const w=document.createElement('div');w.className='mk-lab';
+      const el=document.createElement('span');el.className='plab';el.textContent=r.n;
+      w.appendChild(el);
+      mkPlace.push({mk:new maplibregl.Marker({element:w,anchor:'top'})
+        .setLngLat([r.lon,r.lat]).addTo(map),n:r.n});
+    }
   }
   $('map').dataset.places='1';
   declutter();
