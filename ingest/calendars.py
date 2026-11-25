@@ -132,7 +132,14 @@ TOWN = {
     '1. FC NÜRNBERG': 'Nuremberg', 'KARLSRUHER SC': 'Karlsruhe',
 }
 # Wikidata's label shares no word with the name the calendar uses
-WD_NAME = {'ARZIGNANO VALCHIAMPO': 'Union ArzignanoChiampo',
+WD_NAME = {
+    # The fixtur.es feeds use local or Dutch-ified spellings that Wikidata files under an
+    # English name. Each of these has exactly one venue in Wikidata, so the alias is the
+    # whole fix. "RKS Radomiak 1" is not a typo here - the feed itself truncates the name.
+    'LEGIA WARSZAWA': 'Legia Warsaw',
+    'RKS RADOMIAK 1': 'Radomiak Radom',
+    'HONVED BOEDAPEST': 'Kispest-Honvéd FC',
+'ARZIGNANO VALCHIAMPO': 'Union ArzignanoChiampo',
            'AGF': 'Aarhus Gymnastikforening', 'AGF AARHUS': 'Aarhus Gymnastikforening',
            # voetbalkrant writes club names in Dutch, Wikidata in English
            'AEK ATHENE': 'AEK Athens F.C.', 'OFI KRETA': 'OFI Crete F.C.',

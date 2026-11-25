@@ -28,15 +28,21 @@ for v in venues: v.setdefault('source', 'venues.json')
 # against; the file-based leagues carry their venue inline on every fixture instead.
 # Checking only the first left every calendar-sourced ground - most of Germany, France,
 # Belgium and the Netherlands - never verified at all.
-static = WEB/'fixtures-static.json'
-if static.exists():
-    seen = {}
-    for m in json.load(open(static, encoding='utf-8')):
+# Three sources now, not two: fixtures-feeds.json carries its venues inline the same way
+# fixtures-static.json does. Missing it meant the four feed leagues - Poland, Croatia,
+# Hungary and Portugal 2, over 500 fixtures - were published without a single land check.
+seen = {}
+for name in ('fixtures-static.json', 'fixtures-feeds.json'):
+    path = WEB/name
+    if not path.exists():
+        print(f'  ! {name} missing - its venues are NOT being checked')
+        continue
+    for m in json.load(open(path, encoding='utf-8')):
         seen.setdefault((m['home'], round(m['lat'], 5), round(m['lon'], 5)),
                         dict(club=m['home'], city=m.get('city') or '', country=m['country'],
                              lat=m['lat'], lon=m['lon'], precision=m['precision'],
                              source=m['league']))
-    venues = venues + list(seen.values())
+venues = venues + list(seen.values())
 
 def in_ring(pt, ring):
     x, y = pt; inside = False
