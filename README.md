@@ -33,6 +33,7 @@ Nothing is fetched at request time and there is no API key in the app.
 | Town gazetteer (search box) | `lutangar/cities.json` | 68,493 towns in 38 countries |
 | Country outlines | Natural Earth 10m via `world-atlas` | public domain |
 | Province/state borders | Natural Earth 10m admin-1 (`nvkelso/natural-earth-vector`) | public domain |
+| Town labels on the map | Natural Earth 10m populated places (`nvkelso/natural-earth-vector`) | public domain, 1,088 places |
 
 Re-run nightly; that is frequent enough for schedules and covers postponements.
 
@@ -271,6 +272,27 @@ Two things make that safe to re-run:
 - **It refuses to shrink the data.** A throttled or timed-out endpoint returns fewer rows
   rather than an error, which would quietly demote known grounds to city-centre pins. If any
   country comes back more than 10% smaller than what is already held, nothing is written.
+
+## Town labels
+
+Zoomed into a country the map was pins on an empty canvas, with nothing to say where you
+were looking. `ingest/build-places.mjs` pulls Natural Earth's populated places (public
+domain, the same source as the outlines) into `web/places.json` - 125 kB, fetched the
+first time anyone zooms past `DETAIL_ZOOM`.
+
+**Drawn as DOM markers, not a symbol layer.** The map style carries no glyphs, and adding
+a glyph endpoint would mean fetching fonts from someone else's server on every page load
+- the one thing `privacy.html` promises does not happen.
+
+**Budget per viewport, not a rank threshold.** The obvious approach is "show places above
+importance X at zoom Y", and it fails: a cut tuned for France leaves Slovenia with a
+single label and the empty canvas you were trying to fix. Instead the layer takes the N
+most important places *inside the current view*. The file is pre-sorted by Natural Earth's
+scalerank, so "first N in view" is "biggest N in view", and it adapts by itself - capitals
+in a wide view, suburbs in a tight one.
+
+Match cities are decluttered first and town labels fill the gaps, so a town label can
+never hide the reason the map exists. Town labels are dimmer and lighter by design.
 
 ## Two kinds of league, two side files
 

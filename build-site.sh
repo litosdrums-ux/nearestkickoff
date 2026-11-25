@@ -11,7 +11,7 @@ rm -rf dist && mkdir -p dist/fonts
 
 cp web/index.html web/credits.html web/privacy.html web/terms.html \
    web/disclosure.html web/page.css dist/
-cp web/matches.json web/europe.json web/provinces.json web/cities.json dist/
+cp web/matches.json web/europe.json web/provinces.json web/cities.json web/places.json dist/
 cp web/maplibre-gl.js web/maplibre-gl.css dist/
 cp web/fonts/* dist/fonts/
 cp web/_headers web/robots.txt web/sitemap.xml dist/

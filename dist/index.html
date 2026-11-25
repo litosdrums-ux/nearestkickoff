@@ -152,6 +152,13 @@
   .clab{display:inline-block;color:#cfe2ef;font-size:11.5px;font-weight:500;letter-spacing:.3px;pointer-events:none;white-space:nowrap;line-height:1.2;
         text-shadow:0 0 4px #0a141d,0 0 4px #0a141d,0 1px 3px #000;margin-top:11px;opacity:0;transition:opacity .2s}
   #map[data-labels="1"] .clab{opacity:1}
+  /* Town labels for orientation only. Deliberately dimmer and lighter than .clab:
+     a city that has a match should always read louder than one that does not. */
+  .plab{display:inline-block;color:#6f8ba1;font-size:10.5px;font-weight:400;letter-spacing:.2px;
+    pointer-events:none;white-space:nowrap;line-height:1.2;opacity:0;transition:opacity .25s ease;
+    text-shadow:0 1px 3px rgba(5,12,19,.95),0 0 2px rgba(5,12,19,.9)}
+  .plab.cap{color:#8aa6bc;font-weight:500}
+  #map[data-places="1"] .plab{opacity:1}
   .you{width:14px;height:14px;border-radius:50%;background:var(--you);border:3px solid #fff;box-shadow:0 0 0 6px rgba(74,168,255,.22)}
   /* mode visibility — MapLibre writes an inline opacity on the marker element itself,
      which beats any stylesheet rule, so fade the child instead */
@@ -383,21 +390,73 @@ function applyZoom(){
   el.dataset.labels=z>=LABEL_ZOOM?'1':'0';
   // small dots when zoomed out, so a pin never covers a region it is not in
   el.style.setProperty('--pz',Math.max(12,Math.min(26,12+(z-5)*2.6)).toFixed(1));
+  if(z>=DETAIL_ZOOM)loadPlaces();
   $('banner').textContent=el.dataset.mode==='euro'?'Click a country to see its matches'
     :z<LABEL_ZOOM?'Zoom in for city names':'';
   $('banner').style.opacity=z>=LABEL_ZOOM?0:1;
 }
 
-function declutter(){
-  if($('map').dataset.labels!=='1')return;
-  const placed=[];
-  for(const{mk,n}of mkLab){
-    const p=map.project(mk.getLngLat()),el=mk.getElement();
-    const w=Math.max(42,n.length*6.2);
-    const clash=placed.some(q=>Math.abs(q.x-p.x)<(q.w+w)/2+10&&Math.abs(q.y-p.y)<24);
-    el.style.visibility=clash?'hidden':'visible';
-    if(!clash)placed.push({x:p.x,y:p.y,w});
+// ---- town labels -------------------------------------------------------------
+// Without these a zoomed-in country is pins on an empty canvas, with nothing to say
+// where you are looking. Natural Earth's places, drawn as DOM markers rather than a
+// symbol layer: the map style carries no glyphs, and adding a glyph endpoint would
+// mean fetching fonts from someone else's server on every page load - which is exactly
+// the property privacy.html relies on. 125 kB, fetched the first time anyone zooms in.
+let PLACES=null, placesWanted=false, mkPlace=[];
+
+async function loadPlaces(){
+  if(PLACES||placesWanted)return;
+  placesWanted=true;
+  try{ PLACES=(await (await fetch('places.json')).json()).features; }
+  catch(e){ placesWanted=false; }          // a failed load just means no town labels
+  renderPlaces();
+}
+
+// Fill the view rather than apply a fixed importance threshold. A rank cut tuned for
+// France leaves Slovenia with one label and the empty canvas this was meant to fix;
+// taking the N most important places *inside the current viewport* adapts by itself,
+// so a wide view gets capitals and a tight one gets suburbs. PLACES is pre-sorted by
+// Natural Earth's scalerank, so "first N in view" is "biggest N in view".
+const PLACE_BUDGET=z=> z<6?22 : z<7.5?34 : z<9?44 : 55;
+
+function renderPlaces(){
+  for(const m of mkPlace)m.mk.remove();
+  mkPlace=[];
+  const z=map.getZoom();
+  if(!PLACES||z<DETAIL_ZOOM){$('map').dataset.places='0';return;}
+  const b=map.getBounds(), budget=PLACE_BUDGET(z);
+  for(const f of PLACES){
+    if(mkPlace.length>=budget)break;
+    const [x,y]=f.geometry.coordinates;
+    if(!b.contains([x,y]))continue;
+    const w=document.createElement('div');w.className='mk-lab';
+    const el=document.createElement('span');
+    el.className='plab'+(f.properties.c?' cap':'');
+    el.textContent=f.properties.n;
+    w.appendChild(el);
+    mkPlace.push({mk:new maplibregl.Marker({element:w,anchor:'top'})
+      .setLngLat([x,y]).addTo(map),n:f.properties.n});
   }
+  $('map').dataset.places='1';
+  declutter();
+}
+
+function declutter(){
+  const placed=[];
+  const fit=(list,size,gap)=>{
+    for(const{mk,n}of list){
+      const p=map.project(mk.getLngLat()),el=mk.getElement();
+      const w=Math.max(42,n.length*size);
+      const clash=placed.some(q=>Math.abs(q.x-p.x)<(q.w+w)/2+10&&Math.abs(q.y-p.y)<gap);
+      el.style.visibility=clash?'hidden':'visible';
+      if(!clash)placed.push({x:p.x,y:p.y,w});
+    }
+  };
+  // Match cities are reserved first: a town label must never hide the reason the map
+  // exists. Town labels then take whatever space is left.
+  if($('map').dataset.labels==='1')fit(mkLab,6.2,24);
+  else for(const{mk}of mkLab)mk.getElement().style.visibility='hidden';
+  fit(mkPlace,5.6,18);
 }
 
 function setCountryState(){
@@ -740,7 +799,7 @@ map.on('zoom',()=>{
   if(!animating&&st.country&&map.getZoom()<DETAIL_ZOOM-0.7){selectCountry(null,false);return}
   applyZoom();
 });
-map.on('moveend',declutter);
+map.on('moveend',()=>{renderPlaces();});
 
 /* ---------- boot ---------- */
 Promise.all([
