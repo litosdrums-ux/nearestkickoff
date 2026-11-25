@@ -10,7 +10,7 @@ on a database built from it. That is why this is the first venue source to try.
 Blocked in the Claude sandbox (query.wikidata.org is not on the egress allowlist),
 so this is written to run on your machine. Nothing here needs an API key.
 """
-import json, sys, time, urllib.parse, urllib.request, re, unicodedata, pathlib, collections
+import json, sys, time, urllib.error, urllib.parse, urllib.request, re, unicodedata, pathlib, collections
 
 HERE = pathlib.Path(__file__).resolve().parent
 DATA, WEB = HERE.parent/'data', HERE.parent/'web'
@@ -65,7 +65,35 @@ SELECT ?club ?clubLabel ?clubAlt ?venue ?venueLabel ?coord WHERE {
 }
 """
 
-def sparql(query):
+# ISO 3166-1 assigns a few codes to a state entity that is not the one football clubs
+# are actually linked to. NL is the clearest case: the code "NL" belongs to the Kingdom
+# of the Netherlands (Q29999), while every Dutch club has P17 = Netherlands (Q55).
+# Resolving by code alone returns zero venues for the country - which is exactly what
+# happened on the first run, and only the shrinkage gate stopped it wiping 119 Dutch
+# stadiums. Check a new country's count on the first run rather than trusting the code.
+QID_OVERRIDE = {'NL': 'Q55', 'CY': 'Q229'}
+
+
+def sparql(query, attempts=4):
+    """The public endpoint throttles and occasionally 502s. A country that fails is
+    skipped, and a skipped country reads as "zero venues" to the shrinkage gate, so it
+    is worth a few retries before giving up."""
+    for i in range(attempts):
+        try:
+            return _sparql_once(query)
+        except urllib.error.HTTPError as e:
+            if e.code not in (429, 500, 502, 503, 504) or i == attempts - 1:
+                raise
+            wait = 5 * (i + 1)
+            print(f' [{e.code}, retrying in {wait}s]', end='', flush=True)
+            time.sleep(wait)
+        except (urllib.error.URLError, TimeoutError):
+            if i == attempts - 1:
+                raise
+            time.sleep(5 * (i + 1))
+
+
+def _sparql_once(query):
     url = ENDPOINT + '?' + urllib.parse.urlencode({'query': query, 'format': 'json'})
     req = urllib.request.Request(url, headers={'User-Agent': UA, 'Accept': 'application/sparql-results+json'})
     with urllib.request.urlopen(req, timeout=120) as r:
@@ -93,6 +121,7 @@ def main():
     print(f'resolving {len(isos)} ISO codes to Wikidata items ...', flush=True)
     try:
         qids = resolve_qids(isos)
+        qids.update({k: v for k, v in QID_OVERRIDE.items() if k in isos})
     except Exception as e:
         print(f'could not reach query.wikidata.org: {e}')
         print('Nothing was changed. This script needs unrestricted internet access - '
