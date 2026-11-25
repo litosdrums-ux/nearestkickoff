@@ -272,6 +272,41 @@ Two things make that safe to re-run:
   rather than an error, which would quietly demote known grounds to city-centre pins. If any
   country comes back more than 10% smaller than what is already held, nothing is written.
 
+## Two kinds of league, two side files
+
+Only eight leagues come from openfootball. The rest arrive one of two ways, and they are
+kept in separate files on purpose: a failure in one can never delete the leagues held in
+the other, and both are merged into `matches.json` by `build.py` and by `refresh.py`.
+
+| File | Source | Script | Refreshed |
+|---|---|---|---|
+| `web/fixtures-static.json` | season PDFs and CSVs someone downloaded | `ingest/calendars.py` | by hand, when a league republishes |
+| `web/fixtures-feeds.json` | live `.ics` URLs | `ingest/feeds.py` | **every night in CI** |
+
+`ingest/feeds.py` pulls from `ics.fixtur.es`, which publishes around 170 competitions in
+one format. Adding a league there is a single line in `FEEDS` — slug, name, tier, country,
+country QID — and it then updates itself nightly with no further work.
+
+Three things that file format will do to you:
+
+- **Midnight UTC means "no kickoff time yet", not a midnight kickoff.** Taken literally it
+  becomes a 01:00 or 02:00 local fixture, which is worse than showing TBD because someone
+  could plan around it. `ics_feed` maps exact midnight UTC to no time.
+- **Played matches carry the score in the summary** — `Torreense - Leixões (0-0)`. The
+  score's hyphen has to be stripped before the teams are split on `" - "`.
+- **The feeds are multi-season archives**, some back to 2020 and over 1 MB. Everything
+  before today is dropped, and anything beyond `HORIZON_DAYS` is treated as a placeholder.
+
+`feeds.py` refuses to write rather than write a partial file. A feed it cannot reach, or
+one that returns a valid but **empty** calendar, aborts the run — voetbalkrant's
+Ekstraklasa feed does exactly that, and it would otherwise look like success while
+silently removing a league.
+
+**Venues are not in these feeds.** They come from Wikidata, so a country with no Wikidata
+venues resolves to town centres. When adding a country, run the **Refresh venue data from
+Wikidata** action first; if you forget, `feeds.py` says so, and the next nightly run
+upgrades the pins once the venue data lands.
+
 ## Adding a league
 
 Two things are needed: a published calendar, and a line in `SOURCES` in

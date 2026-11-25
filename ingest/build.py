@@ -198,13 +198,19 @@ json.dump(sorted(venues.values(), key=lambda v: (v['country'], v['club'])),
 # web/fixtures-static.json) because they come from published PDFs/ICS rather than an API.
 # They are merged here so matches.json - the only file the app fetches - is rebuilt by one
 # command rather than by remembering to concatenate two files by hand.
-static_path = WEB/'fixtures-static.json'
-static = json.load(open(static_path, encoding='utf-8')) if static_path.exists() else []
-static = [m for m in static if m['date'] >= TODAY]
-if not static:
-    print('  ! fixtures-static.json is empty - run ingest/calendars.py first, or the '
-          'calendar leagues will be missing from the map')
-matches += static
+# Two side files, deliberately separate. fixtures-static.json comes from files a human
+# downloaded (season PDFs, one-off CSVs) and only changes when someone re-downloads them.
+# fixtures-feeds.json comes from live .ics URLs and is refreshed nightly in CI. Keeping
+# them apart means a failure in one can never delete the leagues held in the other.
+for name, how in (('fixtures-static.json', 'ingest/calendars.py'),
+                  ('fixtures-feeds.json',  'ingest/feeds.py')):
+    path = WEB/name
+    side = json.load(open(path, encoding='utf-8')) if path.exists() else []
+    side = [m for m in side if m['date'] >= TODAY]
+    if not side:
+        print(f'  ! {name} is empty or missing - run {how}, or those leagues will be '
+              'missing from the map')
+    matches += side
 json.dump(matches, open(WEB/'matches.json','w'), ensure_ascii=False)
 
 # ---------- report ----------

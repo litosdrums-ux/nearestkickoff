@@ -223,7 +223,8 @@ CITIES = collections.defaultdict(dict)
 for c in json.load(open(DATA/'cities-eu.json', encoding='utf-8')):
     CITIES[c['c']].setdefault(norm(c['n']), c)
 ISO_OF = {'Q38':'IT','Q145':'GB','Q183':'DE','Q29':'ES','Q142':'FR','Q55':'NL','Q45':'PT',
-          'Q31':'BE','Q40':'AT','Q39':'CH','Q41':'GR','Q43':'TR','Q35':'DK','Q213':'CZ'}
+          'Q31':'BE','Q40':'AT','Q39':'CH','Q41':'GR','Q43':'TR','Q35':'DK','Q213':'CZ',
+          'Q36':'PL','Q224':'HR','Q28':'HU'}
 
 def city_for(team, iso):
     if team.upper() in TOWN: return TOWN[team.upper()]
@@ -472,7 +473,8 @@ TZ = {'Belgium': 'Europe/Brussels', 'Netherlands': 'Europe/Amsterdam',
       'Czechia': 'Europe/Prague', 'Spain': 'Europe/Madrid',
       'France': 'Europe/Paris', 'Austria': 'Europe/Vienna', 'Switzerland': 'Europe/Zurich',
       'England': 'Europe/London', 'Scotland': 'Europe/London', 'Germany': 'Europe/Berlin',
-      'Italy': 'Europe/Rome'}
+      'Italy': 'Europe/Rome', 'Poland': 'Europe/Warsaw', 'Croatia': 'Europe/Zagreb',
+      'Hungary': 'Europe/Budapest', 'Portugal': 'Europe/Lisbon'}
 
 def fixturedl_csv(path, meta):
     """fixturedownload.com: Round Number, Date, Location, Home Team, Away Team, Result.
@@ -500,7 +502,10 @@ def fixturedl_csv(path, meta):
                    date=dt.date().isoformat(), time=dt.strftime('%H:%M'),
                    note=None, league=meta[2])
 
-ICS_SCORE = re.compile(r':\s*\d+\s*-\s*\d+\s*$')
+# Played matches carry the score in the summary. voetbalkrant appends ": 3-0",
+# fixtur.es appends " (3-0)". Both have to go before the teams are split on " - ",
+# or the score's own hyphen turns one fixture into three fields.
+ICS_SCORE = re.compile(r'(?::\s*|\s*\()\d+\s*-\s*\d+\)?\s*$')
 
 def ics_text(v):
     """ICS escapes commas and semicolons with a backslash; unescape before splitting,
@@ -520,7 +525,7 @@ def ics_text(v):
         prev, v = v, html.unescape(v)
     return v
 
-def voetbalkrant_ics(path, meta):
+def ics_feed(path, meta):
     """An .ics feed. SUMMARY is "Home - Away" with ": 3-0" appended once played, so the
     score is stripped first. DTSTART ending in Z is UTC and converted to league time."""
     from zoneinfo import ZoneInfo
@@ -550,7 +555,11 @@ def voetbalkrant_ics(path, meta):
                 dt = datetime.datetime.strptime(start[:8], '%Y%m%d')
         except ValueError:
             continue
-        has_time = 'T' in start
+        # A feed that has no kickoff time yet writes midnight UTC rather than omitting
+        # the time. Taken literally that becomes a 01:00 or 02:00 local kickoff, which is
+        # worse than admitting we do not know: nobody plays football then, and someone
+        # could plan a trip around it. Treat exact midnight UTC as unknown.
+        has_time = 'T' in start and not start.endswith('T000000Z')
         yield dict(home=parts[0].strip(), away=parts[1].strip(),
                    ground=ics_text(f.get('LOCATION') or '').split(',')[0].strip() or None,
                    date=dt.date().isoformat(),
@@ -559,7 +568,7 @@ def voetbalkrant_ics(path, meta):
 
 PARSERS = {'legapro_csv': legapro_csv, 'datasport_pdf': datasport_pdf,
            'spfl_pdf': spfl_pdf, 'dfl_pdf': dfl_pdf, 'anstoss_pdf': anstoss_pdf,
-           'fixturedl_csv': fixturedl_csv, 'voetbalkrant_ics': voetbalkrant_ics}
+           'fixturedl_csv': fixturedl_csv, 'voetbalkrant_ics': ics_feed, 'ics_feed': ics_feed}
 
 def drop_foreign_clubs(rows, floor=0.4):
     """A club in a league plays every round, so its appearances land in a tight band.

@@ -5,7 +5,7 @@ Venues change about once a season; fixtures and kickoff times change constantly.
 So this re-fetches only the schedules and joins them to the venue table that the
 full ingest already resolved. No API key, no venue work, ~8 small downloads.
 
-    python3 refresh.py venues.json previous-matches.json out-matches.json [static.json]
+    python3 refresh.py venues.json prev-matches.json out-matches.json [side.json ...]
 
 Leagues with no machine-readable feed (Serie C, uploaded as a calendar file) live in
 fixtures-static.json and are merged in here. Without that merge each night's rebuild
@@ -14,7 +14,7 @@ would silently delete them.
 Exits non-zero without writing if a safety gate trips, so a bad upstream day
 leaves the live site on its last good data rather than publishing a hole.
 """
-import json, re, sys, unicodedata, datetime, urllib.request, collections
+import json, re, sys, unicodedata, datetime, urllib.request, collections, pathlib
 
 BASE = 'https://raw.githubusercontent.com/openfootball/football.json/master'
 SEASON = '2026-27'
@@ -38,7 +38,7 @@ def fetch(url):
     with urllib.request.urlopen(req, timeout=60) as r:
         return json.load(r)
 
-def main(venues_path, prev_path, out_path, static_path=None):
+def main(venues_path, prev_path, out_path, *side_paths):
     venues = json.load(open(venues_path, encoding='utf-8'))
     by_club = {norm(v['club']): v for v in venues}
     today = datetime.date.today().isoformat()
@@ -63,17 +63,23 @@ def main(venues_path, prev_path, out_path, static_path=None):
             kept += 1
         print(f'  {code}: {kept} upcoming')
 
-    # ---- merge fixtures that came from a file rather than a feed ----
-    if static_path:
+    # ---- merge the leagues that do not come from openfootball ----
+    # fixtures-static.json: parsed from downloaded files, changes rarely.
+    # fixtures-feeds.json:  fetched from live .ics URLs by ingest/feeds.py, nightly.
+    # Each is merged independently so one missing file cannot take the other down.
+    for side_path in side_paths:
+        name = pathlib.Path(side_path).name
         try:
-            static = [m for m in json.load(open(static_path, encoding='utf-8'))
-                      if m.get('date', '') >= today]
-            out += static
-            print(f'  static: {len(static)} upcoming fixtures merged')
+            side = [m for m in json.load(open(side_path, encoding='utf-8'))
+                    if m.get('date', '') >= today]
+            out += side
+            print(f'  {name}: {len(side)} upcoming fixtures merged')
+            if not side:
+                failed.append(name)      # an empty side file means a league vanished
         except FileNotFoundError:
-            print('  static: no fixtures-static.json, skipping')
+            print(f'  {name}: not found, skipping')
         except Exception as e:
-            failed.append('static'); print(f'  static: FAILED {e}')
+            failed.append(name); print(f'  {name}: FAILED {e}')
 
     # ---- safety gates: refuse to publish a dataset that looks broken ----
     prev = []
@@ -109,4 +115,4 @@ def main(venues_path, prev_path, out_path, static_path=None):
     return 0
 
 if __name__ == '__main__':
-    sys.exit(main(*sys.argv[1:5]))
+    sys.exit(main(*sys.argv[1:]))   # any number of side files

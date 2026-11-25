@@ -27,17 +27,25 @@ jobs:
         with:
           python-version: '3.12'
 
+      # Live .ics league feeds (Poland, Croatia, Hungary, Portugal 2). These are always
+      # current, so unlike the file-based leagues they can be re-fetched every night.
+      # feeds.py aborts rather than write a partial file: a feed it cannot reach, or one
+      # that returns an empty calendar, must not quietly remove a league from the map.
+      - name: Refresh live league feeds
+        run: python3 ingest/feeds.py
+
       # refresh.py re-fetches only the schedules and joins them to the venue table the
       # full ingest already resolved. Venues change about once a season; fixtures change
-      # nightly. It merges fixtures-static.json too - without that, every night's rebuild
-      # would silently delete the calendar-file leagues.
+      # nightly. It merges both side files - without that, every night's rebuild would
+      # silently delete every league that does not come from openfootball.
       - name: Refresh fixtures from openfootball
         run: |
           python3 web/refresh.py \
             web/venues.json \
             web/matches.json \
             web/matches.new.json \
-            web/fixtures-static.json
+            web/fixtures-static.json \
+            web/fixtures-feeds.json
 
       # refresh.py exits non-zero without writing if a safety gate trips, so a bad
       # upstream day leaves the site on its last good data instead of publishing a hole.
@@ -56,7 +64,7 @@ jobs:
         run: |
           git config user.name  "nearestkickoff-bot"
           git config user.email "contact@nearestkickoff.com"
-          git add web/matches.json dist/
+          git add web/matches.json web/fixtures-feeds.json dist/
           if git diff --staged --quiet; then
             echo "No fixture changes today."
           else
