@@ -31,6 +31,13 @@ FEEDS = [
     ('croatia-hnl',                      'HNL',             1, 'Croatia',  'Q224'),
     ('hungarian-nemzeti-bajnoksag-nb-1', 'NB I',            1, 'Hungary',  'Q28'),
     ('liga-portugal-2',                  'Liga Portugal 2', 2, 'Portugal', 'Q45'),
+    # Summer leagues: these run spring to autumn, so they fill the June-July hole the
+    # winter leagues leave. Out of season they contribute nothing rather than failing -
+    # their next season's fixtures appear in the feed when the league publishes them,
+    # usually in December or January, and the nightly run picks them up on its own.
+    ('irish-premier-division',           'Premier Division', 1, 'Ireland', 'Q27'),
+    ('eliteserien',                      'Eliteserien',      1, 'Norway',  'Q20'),
+    ('swedish-allsvenskan',              'Allsvenskan',      1, 'Sweden',  'Q34'),
 ]
 
 # These feeds are multi-season archives going back years, so everything before today is

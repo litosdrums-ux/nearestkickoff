@@ -231,7 +231,7 @@ for c in json.load(open(DATA/'cities-eu.json', encoding='utf-8')):
     CITIES[c['c']].setdefault(norm(c['n']), c)
 ISO_OF = {'Q38':'IT','Q145':'GB','Q183':'DE','Q29':'ES','Q142':'FR','Q55':'NL','Q45':'PT',
           'Q31':'BE','Q40':'AT','Q39':'CH','Q41':'GR','Q43':'TR','Q35':'DK','Q213':'CZ',
-          'Q36':'PL','Q224':'HR','Q28':'HU'}
+          'Q36':'PL','Q224':'HR','Q28':'HU','Q27':'IE','Q20':'NO','Q34':'SE','Q222':'AL'}
 
 def city_for(team, iso):
     if team.upper() in TOWN: return TOWN[team.upper()]
@@ -481,7 +481,9 @@ TZ = {'Belgium': 'Europe/Brussels', 'Netherlands': 'Europe/Amsterdam',
       'France': 'Europe/Paris', 'Austria': 'Europe/Vienna', 'Switzerland': 'Europe/Zurich',
       'England': 'Europe/London', 'Scotland': 'Europe/London', 'Germany': 'Europe/Berlin',
       'Italy': 'Europe/Rome', 'Poland': 'Europe/Warsaw', 'Croatia': 'Europe/Zagreb',
-      'Hungary': 'Europe/Budapest', 'Portugal': 'Europe/Lisbon'}
+      'Hungary': 'Europe/Budapest', 'Portugal': 'Europe/Lisbon',
+      'Ireland': 'Europe/Dublin', 'Norway': 'Europe/Oslo', 'Sweden': 'Europe/Stockholm',
+      'Albania': 'Europe/Tirane'}
 
 def fixturedl_csv(path, meta):
     """fixturedownload.com: Round Number, Date, Location, Home Team, Away Team, Result.

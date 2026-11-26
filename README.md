@@ -318,6 +318,12 @@ the other, and both are merged into `matches.json` by `build.py` and by `refresh
 | `web/fixtures-static.json` | season PDFs and CSVs someone downloaded | `ingest/calendars.py` | by hand, when a league republishes |
 | `web/fixtures-feeds.json` | live `.ics` URLs | `ingest/feeds.py` | **every night in CI** |
 
+Seven leagues come through `feeds.py` today: Ekstraklasa, HNL, NB I, Liga Portugal 2, and
+the three summer leagues — Ireland's Premier Division, Eliteserien and Allsvenskan. The
+summer ones run spring to autumn, so they fill the June–July hole the winter leagues
+leave; out of season they contribute nothing rather than failing, and the nightly run
+picks up each new season when the league publishes it.
+
 `ingest/feeds.py` pulls from `ics.fixtur.es`, which publishes around 170 competitions in
 one format. Adding a league there is a single line in `FEEDS` — slug, name, tier, country,
 country QID — and it then updates itself nightly with no further work.
