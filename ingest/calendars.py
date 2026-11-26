@@ -240,6 +240,17 @@ def city_for(team, iso):
         if w in CITIES[iso]: return CITIES[iso][w]['n']
     return None
 
+QID_LABEL = re.compile(r'^Q\d+$')
+
+
+def named(stadium, fallback):
+    """Wikidata's label service returns the bare Q-number when a venue has no label in
+    any language we asked for. 91 venues are in that state. Showing "Q11976878" as the
+    ground is worse than showing the town: the coordinate is still good, so keep the
+    pin where it is and call it by the place it is in."""
+    return fallback if stadium and QID_LABEL.match(stadium) else stadium
+
+
 def resolve(team, ground, qid, country):
     """A calendar that names the ground beats Wikidata's home-venue link, which lags."""
     v = VERIFIED.get(team.upper())
@@ -254,7 +265,8 @@ def resolve(team, ground, qid, country):
         matched = bool(g)
         hit = one_place(g)
         if hit:
-            return dict(stadium=hit['stadium'], city=city_for(team, iso) or hit['stadium'],
+            return dict(stadium=named(hit['stadium'], city_for(team, iso)) or hit['stadium'],
+                        city=city_for(team, iso) or hit['stadium'],
                         lat=hit['lat'], lon=hit['lon'], precision='stadium')
     if RESERVE.search(norm(team)):
         cand = []
@@ -274,7 +286,8 @@ def resolve(team, ground, qid, country):
     # recognise. An unrecognised name is usually a sponsor title ("The Marbill Coaches
     # Stadium" for St. Mirren Park), which is no evidence the club moved.
     if v and not (matched and not same_ground(v['stadium'], ground)):
-        return dict(stadium=v['stadium'], city=city_for(team, iso) or v['stadium'],
+        return dict(stadium=named(v['stadium'], city_for(team, iso)) or v['stadium'],
+                    city=city_for(team, iso) or v['stadium'],
                     lat=v['lat'], lon=v['lon'], precision='stadium')
     abroad = TOWN_ABROAD.get(team.upper())
     town = abroad[0] if abroad else (CITY_FALLBACK.get(team.upper()) or city_for(team, iso))

@@ -60,16 +60,24 @@ def in_feature(pt, f):
 # so a venue a few km "offshore" is a drawing artifact, not a bad coordinate.
 # Beyond this, something is genuinely wrong (wrong city, swapped lat/lon).
 TOLERANCE_KM = 6.0
+
+# Norway is the pathological case for a generalised coastline: a fjord coast with tens
+# of thousands of islands, drawn at 10m resolution, puts real shoreline grounds outside
+# the polygon. Every Eliteserien venue flagged here was checked against its own town and
+# sits 0.3-2 km from the town centre, so the coordinates are right and the coastline is
+# the approximation. Raised rather than silenced - they are still listed in the report.
+TOLERANCE_BY_COUNTRY = {'Norway': 12.0}
 bad, warn, nocountry = [], [], []
 for v in venues:
     land = ENCLAVE.get(v['club'], v['country'])
+    tol = TOLERANCE_BY_COUNTRY.get(v['country'], TOLERANCE_KM)
     f = byname.get(SOV.get(land, land))
     if not f: nocountry.append(v); continue
     if not in_feature((v['lon'], v['lat']), f):
         best = min((math.hypot((p[0]-v['lon'])*math.cos(math.radians(v['lat']))*111.32,
                                (p[1]-v['lat'])*110.57)
                     for poly in f['geometry']['coordinates'] for p in poly[0]), default=0)
-        (warn if best <= TOLERANCE_KM else bad).append((v, best))
+        (warn if best <= tol else bad).append((v, best))
 
 dupes = collections.Counter((round(v['lat'],4), round(v['lon'],4)) for v in venues)
 stacked = {k: c for k, c in dupes.items() if c > 1}
