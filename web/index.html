@@ -248,6 +248,8 @@
       <nav class="legal">
         <a href="credits.html" target="_blank" rel="noopener">Credits &amp; licences</a>
         <a href="privacy.html" target="_blank" rel="noopener">Privacy</a>
+        <a href="/cities/">Cities</a>
+        <a href="/leagues/">Leagues</a>
         <a href="terms.html" target="_blank" rel="noopener">Terms</a>
         <a class="coffee" href="https://buymeacoffee.com/nearestkickoff" target="_blank" rel="noopener">Buy me a coffee</a>
       </nav>
@@ -282,6 +284,25 @@ const TIERS={1:['Top flight','#3ddc84'],2:['Second tier','#ffd24a'],3:['Third ti
 // stadium country -> sovereign state used by the map geometry
 const SOVEREIGN={England:'United Kingdom',Scotland:'United Kingdom',Wales:'United Kingdom','Türkiye':'Turkey'};
 const sov=c=>SOVEREIGN[c]||c;
+// The generated city pages link in with ?city=Florence, which doubles as a shareable
+// URL. Resolved against the gazetteer once it loads, so it works for any town we know,
+// not just ones with a match.
+function cityFromUrl(){
+  const q=new URLSearchParams(location.search).get('city');
+  if(!q)return;
+  loadCities().then(()=>{
+    if(!CITY_IDX||CITY_IDX.failed)return;
+    const k=deburr(q);
+    const hit=CITY_IDX.rows.find(r=>r.k===k)||CITY_IDX.rows.find(r=>r.k.startsWith(k));
+    if(!hit)return;
+    chooseCity(hit);
+    // chooseCity sets where distances are measured from; it deliberately does not move
+    // the camera. Someone arriving from the Kraków page expects to SEE Kraków, so the
+    // deep link moves it too - close enough for pins and town labels to be drawn.
+    map.jumpTo({center:[hit.lon,hit.lat],zoom:8.6});
+  });
+}
+
 const HOME = ['Florence', 43.7696, 11.2558];   // where the map opens
 
 let S=[],MATCHES=[],countryBounds={},GEO=null;
@@ -768,6 +789,7 @@ function chooseCity(r){
   setCenter([r.lon,r.lat],`Matches measured from ${r.n}. Click a country to zoom in.`);
 }
 $('city').value=HOME[0];
+cityFromUrl();
 $('city').addEventListener('focus',loadCities);
 $('city').addEventListener('input',async()=>{
   const inp=$('city'),q=inp.value;

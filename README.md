@@ -273,6 +273,34 @@ Two things make that safe to re-run:
   rather than an error, which would quietly demote known grounds to city-centre pins. If any
   country comes back more than 10% smaller than what is already held, nothing is written.
 
+## The content layer
+
+The map is one JavaScript page, so a crawler sees almost nothing and the site ranks for
+nothing. `ingest/build-pages.py` generates a static HTML page per city and per league
+from `matches.json` — 550 city pages, 34 league pages, two indexes and a sitemap — with
+real text answering what people actually search: *football in Florence this weekend*.
+
+Regenerated on every build, including nightly. **This is not optional:** left to rot they
+become a second, stale copy of the fixture list, and a search engine would be serving
+people yesterday's kickoff times.
+
+A few details worth keeping:
+
+- **The affiliate table is read out of `index.html`, not copied.** Two copies drift, and
+  the one that drifts is the one nobody looks at. `build-pages.py` parses `TICKETS` and
+  `AFF` from the map's source and exits if it cannot find them.
+- **Only clashing city names carry a country in the slug.** `/city/valencia-spain/` only
+  exists because Valencia also exists elsewhere; everything else keeps the clean URL.
+- **Every page links to its neighbours** — nearby cities within 120 km, the leagues played
+  there — so a crawler reaches all 584 pages in two clicks from the map, and a reader has
+  somewhere to go next.
+- **The `affiliate` label must never be the thing that scrolls off screen.** It is what
+  makes the commercial relationship visible at the link, so the narrow-screen rules drop
+  the league and ground columns before they touch it.
+
+The pages link into the map with `?city=`, which doubles as a shareable URL: it sets
+where distances are measured from *and* moves the camera there.
+
 ## Town labels
 
 Zoomed into a country the map was pins on an empty canvas, with nothing to say where you

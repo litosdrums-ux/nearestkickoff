@@ -16,4 +16,8 @@ cp web/maplibre-gl.js web/maplibre-gl.css dist/
 cp web/fonts/* dist/fonts/
 cp web/_headers web/robots.txt web/sitemap.xml dist/
 
+# The generated content layer: city/, league/ and the two indexes. Copied wholesale
+# because build-pages.py rebuilds them from scratch on every run.
+cp -r web/city web/league web/cities web/leagues dist/
+
 echo "dist/ assembled: $(find dist -type f | wc -l) files, $(du -sh dist | cut -f1)"

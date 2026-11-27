@@ -57,6 +57,13 @@ jobs:
       - name: Verify
         run: python3 ingest/verify.py
 
+      # The city and league pages are generated from matches.json, so they are rebuilt
+      # every night too. Otherwise they would quietly rot into a second, stale copy of
+      # the fixture list - which is worse than not having them, because search engines
+      # would be serving people yesterday's kickoff times.
+      - name: Rebuild the city and league pages
+        run: python3 ingest/build-pages.py
+
       - name: Assemble the site
         run: ./build-site.sh
 
@@ -64,7 +71,8 @@ jobs:
         run: |
           git config user.name  "nearestkickoff-bot"
           git config user.email "contact@nearestkickoff.com"
-          git add web/matches.json web/fixtures-feeds.json dist/
+          git add web/matches.json web/fixtures-feeds.json web/sitemap.xml \
+                  web/city web/league web/cities web/leagues dist/
           if git diff --staged --quiet; then
             echo "No fixture changes today."
           else
