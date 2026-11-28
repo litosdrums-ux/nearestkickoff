@@ -13,7 +13,7 @@
   <url><loc>https://nearestkickoff.com/city/bristol/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/exeter/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/varberg/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nearestkickoff.com/city/illovszky-rudolf-stadion/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://nearestkickoff.com/city/budapest/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/tamaraceite/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/samsun/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/wurzburg/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
@@ -76,7 +76,7 @@
   <url><loc>https://nearestkickoff.com/city/hamburg/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/moreira-de-conegos/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/arouca/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nearestkickoff.com/city/estadio-algarve/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://nearestkickoff.com/city/faro/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/westerlo/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/volos/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/thessaloniki/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
@@ -86,7 +86,6 @@
   <url><loc>https://nearestkickoff.com/city/rotterdam/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/emmen/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/aspach/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nearestkickoff.com/city/hidegkuti-nandor-stadion/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/gaziantep/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/vienna/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/angers/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
@@ -98,7 +97,7 @@
   <url><loc>https://nearestkickoff.com/city/vaduz/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/osijek/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/lourosa/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nearestkickoff.com/city/lerkendal-stadion/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://nearestkickoff.com/city/trondheim/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/brugge/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/stuttgart/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/eibar/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
@@ -130,7 +129,6 @@
   <url><loc>https://nearestkickoff.com/city/granada/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/istanbul/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/felgueiras/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nearestkickoff.com/city/groupama-arena/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/sittard/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/graz/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/ried-im-innkreis/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
@@ -159,11 +157,11 @@
   <url><loc>https://nearestkickoff.com/city/reggio-nell-emilia/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/la-spezia/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/pesaro/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nearestkickoff.com/city/orjans-vall/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://nearestkickoff.com/city/halmstad/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/malmo/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/degerfors/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nearestkickoff.com/city/boras-arena/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nearestkickoff.com/city/gamla-ullevi/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://nearestkickoff.com/city/boras/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://nearestkickoff.com/city/goteborg/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/kalmar/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/vasteras/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/freiburg/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
@@ -177,12 +175,12 @@
   <url><loc>https://nearestkickoff.com/city/zwolle/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/kerkrade/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/salzburg/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nearestkickoff.com/city/brann-stadion/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://nearestkickoff.com/city/bergen/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/sandefjord/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nearestkickoff.com/city/sparebanken-norge-arena-kristiansand/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://nearestkickoff.com/city/kristiansand/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/toulouse/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/sinsheim/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nearestkickoff.com/city/polish-army-stadium/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://nearestkickoff.com/city/warsaw/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/barcelos/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/zlin/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/aris/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
@@ -191,7 +189,7 @@
   <url><loc>https://nearestkickoff.com/city/liege/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/cadiz/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/brussels/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nearestkickoff.com/city/lyse-arena/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://nearestkickoff.com/city/stavanger/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/dortmund/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/ingolstadt/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/nijmegen/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
@@ -238,7 +236,7 @@
   <url><loc>https://nearestkickoff.com/city/salerno/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/sorrento/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/izmir/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nearestkickoff.com/city/estadio-cidade-de-coimbra/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://nearestkickoff.com/city/coimbra/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/odense/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/kielce/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/lillestrom/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
@@ -281,7 +279,6 @@
   <url><loc>https://nearestkickoff.com/city/rijeka/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/pardubice/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/krakow/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nearestkickoff.com/city/estadio-do-mar/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/molde/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/altach/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/velsen-zuid/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
@@ -318,8 +315,7 @@
   <url><loc>https://nearestkickoff.com/city/montpellier/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/dunkirk/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/diyarbakir/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nearestkickoff.com/city/stadion-olah-gabor-ut/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nearestkickoff.com/city/marshal-jozef-pilsudski-stadium/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://nearestkickoff.com/city/debrecen/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/cardiff/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/norwich/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/wolverhampton/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
@@ -336,8 +332,7 @@
   <url><loc>https://nearestkickoff.com/city/arcella/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/pisa/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/chiavari/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nearestkickoff.com/city/stadion-kranjceviceva/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nearestkickoff.com/city/color-line-stadion/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://nearestkickoff.com/city/alesund/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/sabadell/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/tilburg/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/arhus/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
@@ -345,7 +340,7 @@
   <url><loc>https://nearestkickoff.com/city/ujpest/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/lublin/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/koprivnica/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nearestkickoff.com/city/intility-arena/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://nearestkickoff.com/city/oslo/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/andorra/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/piraeus/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/nyiregyhaza/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
@@ -368,18 +363,18 @@
   <url><loc>https://nearestkickoff.com/city/marseille/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/rennes/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/strasbourg/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nearestkickoff.com/city/estadio-municipal-de-portimao/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://nearestkickoff.com/city/portimao/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/erzurum/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/burnley/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/heerenveen/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nearestkickoff.com/city/stadion-rks-radomiak/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://nearestkickoff.com/city/radom/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/basel/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/kalamata/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/hillerod/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/lind/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/etimesgut/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/vizela/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nearestkickoff.com/city/zte-arena/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://nearestkickoff.com/city/zalaegerszeg/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/amsterdam/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/deventer/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/nijrees/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
@@ -410,21 +405,19 @@
   <url><loc>https://nearestkickoff.com/city/castello/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/lausanne/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/herisau/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nearestkickoff.com/city/pancho-arena/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://nearestkickoff.com/city/tatabanya/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/s-hertogenbosch/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/gageldonk/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/trabzon/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nearestkickoff.com/city/kfum-arena/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/tromso/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/kristiansund/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/gliwice/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/ostrava/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/horsens/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nearestkickoff.com/city/estadio-manuel-marques/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://nearestkickoff.com/city/torres-vedras/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/gijon/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/ceuta/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nearestkickoff.com/city/bozsik-stadion/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nearestkickoff.com/city/briskeby-arena/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://nearestkickoff.com/city/hamar/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/girona/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/pamplona/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/seville/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
@@ -488,13 +481,13 @@
   <url><loc>https://nearestkickoff.com/city/braunschweig/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/furth/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/osnabruck/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nearestkickoff.com/city/estadio-marcolino-de-castro/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://nearestkickoff.com/city/feira/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/pau/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/kizilcasehir/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/doncaster/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/kortrijk/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/wattens/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nearestkickoff.com/city/eto-park/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://nearestkickoff.com/city/gyor/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/la-louviere/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/livadeia/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/metz/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
@@ -520,7 +513,7 @@
   <url><loc>https://nearestkickoff.com/city/dordrecht/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/heidenheim/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/venlo/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nearestkickoff.com/city/stadion-aldo-drosina/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://nearestkickoff.com/city/pula/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/leuven/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/reims/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nearestkickoff.com/city/enschede/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
