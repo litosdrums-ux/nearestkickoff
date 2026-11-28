@@ -22,6 +22,8 @@ until a fresh one arrives.
 import csv, json, re, sys, subprocess, unicodedata, datetime, pathlib, collections, html
 
 HERE = pathlib.Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+import geo  # noqa: E402
 DATA, WEB = HERE.parent/'data', HERE.parent/'web'
 
 # filename fragment (or any of several) -> parser, league, tier, country,
@@ -223,7 +225,11 @@ def one_place(cands, metres=400):
 # to the parent's stadium: "Jong AZ" would land at the AFAS Stadion in Alkmaar instead
 # of the training complex at Wijdewormer, and be labelled exact. Either the calendar
 # names a ground we recognise, or the pin is drawn at town level.
-RESERVE = re.compile(r'(^|\s)jong(\s|$)|\sii$|\su\d\d$|next gen|amateure?s?$')
+# Reserve and academy sides share a club's name but not its ground, so they must never
+# lend the first team a stadium. Turkish clubs label theirs A2: missing that made
+# Galatasaray look like it had two home grounds, and the resolver correctly refused
+# to choose - which blocked the whole ingest.
+RESERVE = re.compile(r'(^|\s)jong(\s|$)|\sii$|\sa2$|\su\d\d$|next gen|amateure?s?$')
 
 ALL_WD = json.load(open(DATA/'wikidata-venues.json', encoding='utf-8'))
 CITIES = collections.defaultdict(dict)
@@ -266,7 +272,7 @@ def resolve(team, ground, qid, country):
         hit = one_place(g)
         if hit:
             return dict(stadium=named(hit['stadium'], city_for(team, iso)) or hit['stadium'],
-                        city=city_for(team, iso) or hit['stadium'],
+                        city=city_for(team, iso) or geo.snap_city(hit['lat'], hit['lon']) or hit['stadium'],
                         lat=hit['lat'], lon=hit['lon'], precision='stadium')
     if RESERVE.search(norm(team)):
         cand = []
@@ -281,13 +287,19 @@ def resolve(team, ground, qid, country):
             tk = set(k.split())
             cand = [v for ck, vs in idx.items() if ck and
                     (set(ck.split()) <= tk or tk <= set(ck.split())) for v in vs]
+    # RESERVE above only asks whether the TEAM is a reserve side. It must also drop
+    # reserve sides from the candidates: "Galatasaray" matched Galatasaray S.K., A2 and
+    # U21, which train at a different complex, so the club looked like it had three home
+    # grounds and the resolver refused to choose - blocking the whole ingest. A first
+    # team never plays at its academy, so these are never the answer.
+    cand = [c for c in cand if not RESERVE.search(norm(c['club']))]
     v = one_place(cand)
     # Only let a named ground veto the club's stored venue when that ground is one we
     # recognise. An unrecognised name is usually a sponsor title ("The Marbill Coaches
     # Stadium" for St. Mirren Park), which is no evidence the club moved.
     if v and not (matched and not same_ground(v['stadium'], ground)):
         return dict(stadium=named(v['stadium'], city_for(team, iso)) or v['stadium'],
-                    city=city_for(team, iso) or v['stadium'],
+                    city=city_for(team, iso) or geo.snap_city(v['lat'], v['lon']) or v['stadium'],
                     lat=v['lat'], lon=v['lon'], precision='stadium')
     abroad = TOWN_ABROAD.get(team.upper())
     town = abroad[0] if abroad else (CITY_FALLBACK.get(team.upper()) or city_for(team, iso))

@@ -129,8 +129,14 @@ def main():
         clubs = sorted({m['home'] for m in ms})
         leagues = sorted({m['league'] for m in ms})
         n = len(ms)
+        # Serie A and La Liga publish no kickoff times at all until a few weeks out, so
+        # promising "kickoff times" would be a lie on a large share of pages - including
+        # every Italian one. Say what this page actually has.
+        timed = sum(1 for m in ms if m['time'])
+        has_t = ('Dates, kickoff times and grounds' if timed > len(ms) * 0.6 else
+                 'Dates and grounds, with kickoff times as they are confirmed')
         desc = (f'{n} upcoming football {"match" if n == 1 else "matches"} in {city}, '
-                f'{country}. Dates, kickoff times and grounds, updated daily.')
+                f'{country}. {has_t}, updated daily.')
         body = f'''<h1>Football in {html.escape(city)}</h1>
 <p class="lede">{n} upcoming {"match" if n == 1 else "matches"} in {html.escape(city)},
 {html.escape(country)} — first on {when(ms[0])}. Updated every night.</p>
@@ -158,14 +164,18 @@ def main():
         cities = sorted({(m['city'], m['country']) for m in ms})
         country = ms[0]['country']
         n = len(ms)
-        desc = (f'{n} upcoming {league} fixtures with dates, kickoff times and grounds. '
-                f'See them on a map of football across Europe.')
+        timed = sum(1 for m in ms if m['time'])
+        desc = (f'{n} upcoming {league} fixtures with '
+                + ('dates, kickoff times and grounds. ' if timed > len(ms) * 0.6
+                   else 'dates and grounds; kickoff times are confirmed closer to the date. ')
+                + 'See them on a map of football across Europe.')
         body = f'''<h1>{html.escape(league)} fixtures</h1>
 <p class="lede">{n} upcoming {html.escape(league)} {"match" if n == 1 else "matches"}
 in {html.escape(country)} — first on {when(ms[0])}. Updated every night.</p>
 <p><a class="cta" href="/">See them on the map &rarr;</a></p>
 {fixture_rows(ms[:120], show_city=True)}
-{'<p class="more">Showing the next 120 fixtures.</p>' if n > 120 else ''}
+{f'<p class="more">Showing the next 120 of {n} fixtures.</p>' if n > 120 else ''}
+{'<p class="more">This league publishes kickoff times a few weeks ahead, so most are still to be confirmed.</p>' if timed < len(ms) * 0.4 else ''}
 <h2>Where {html.escape(league)} is played</h2>
 <p>{" · ".join(f'<a href="/city/{city_slug[k]}/">{html.escape(k[0])}</a>' for k in cities)}</p>
 '''

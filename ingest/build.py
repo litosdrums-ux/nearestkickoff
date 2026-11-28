@@ -13,6 +13,8 @@ Sources
 import json, csv, re, sys, os, unicodedata, datetime, pathlib, collections
 
 HERE = pathlib.Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+import geo  # noqa: E402
 DATA, WEB = HERE.parent/'data', HERE.parent/'web'
 
 LEAGUES = {  # file: (display name, tier, country, ISO2)
@@ -137,7 +139,8 @@ def from_wikidata(team, iso, country):
         return None
     v = next(v for v in hits if (round(v['lat'], 3), round(v['lon'], 3)) == best)
     return dict(club=team, stadium=v['stadium'],
-                city=v.get('city') or city_for(team, iso) or v['stadium'],
+                city=v.get('city') or city_for(team, iso) or geo.snap_city(v['lat'], v['lon'])
+                     or v['stadium'],
                 lat=v['lat'], lon=v['lon'], country=country,
                 precision='stadium', source='wikidata')
 
